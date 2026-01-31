@@ -1,0 +1,22 @@
+[
+  {
+    "name": "small_20nodes",
+    "num_nodes": 20,
+    "num_edges": 67
+  },
+  {
+    "name": "medium_50nodes",
+    "num_nodes": 50,
+    "num_edges": 292
+  },
+  {
+    "name": "large_100nodes",
+    "num_nodes": 100,
+    "num_edges": 778
+  },
+  {
+    "name": "scale_free_50nodes",
+    "num_nodes": 50,
+    "num_edges": 141
+  }
+]

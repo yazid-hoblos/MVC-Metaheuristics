@@ -1,0 +1,5 @@
+{
+  "name": "scale_free_50nodes",
+  "num_nodes": 50,
+  "num_edges": 141
+}

@@ -1,0 +1,5 @@
+{
+  "name": "large_100nodes",
+  "num_nodes": 100,
+  "num_edges": 778
+}
