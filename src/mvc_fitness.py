@@ -149,10 +149,27 @@ class EdgeCoverageOptimization(FitnessFunction):
                 covered += 1
         return covered
     
+    def count_uncovered_edges(self, cover: Set[int]) -> int:
+        """Count edges not covered by the solution."""
+        uncovered = 0
+        for u, v in self.problem.edges:
+            if u not in cover and v not in cover:
+                uncovered += 1
+        return uncovered
+    
     def evaluate(self, cover: Set[int]) -> float:
         """
         Evaluate with edge coverage and size minimization.
+        Prioritizes feasibility: valid solutions always better than infeasible.
         """
+        is_valid = self.problem.is_valid_cover(cover)
+        
+        if not is_valid:
+            # For infeasible solutions, apply extreme penalty
+            covered_edges = self.count_covered_edges(cover)
+            coverage_ratio = covered_edges / self.problem.num_edges if self.problem.num_edges > 0 else 0
+            return coverage_ratio - 100000  # Infeasible always much worse than feasible
+        
         covered_edges = self.count_covered_edges(cover)
         coverage_ratio = covered_edges / self.problem.num_edges if self.problem.num_edges > 0 else 0
         
