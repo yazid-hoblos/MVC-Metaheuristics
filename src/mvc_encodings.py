@@ -134,6 +134,10 @@ class EdgeCentricEncoding(Encoding):
         """
         self.edges = edges
         self.num_edges = len(edges)
+        self.degrees = {}
+        for u, v in edges:
+            self.degrees[u] = self.degrees.get(u, 0) + 1
+            self.degrees[v] = self.degrees.get(v, 0) + 1
     
     def solution_to_cover(self, solution: List[int]) -> Set[int]:
         """
@@ -145,7 +149,10 @@ class EdgeCentricEncoding(Encoding):
             if edge_active == 1 and i < len(self.edges):
                 u, v = self.edges[i]
                 # Greedy selection: add endpoint with higher degree to cover
-                cover.add(u)
+                if self.degrees.get(u, 0) >= self.degrees.get(v, 0):
+                    cover.add(u)
+                else:
+                    cover.add(v)
         return cover
     
     def cover_to_solution(self, cover: Set[int], num_nodes: int) -> List[int]:
