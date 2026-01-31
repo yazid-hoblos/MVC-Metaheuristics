@@ -49,6 +49,22 @@ class MinimumVertexCoverProblem:
     def cover_size(self, cover: Set[int]) -> int:
         """Return the size of the cover."""
         return len(cover)
+
+    def repair_cover(self, cover: Set[int]) -> Set[int]:
+        """
+        Repair an invalid cover by greedily adding endpoints of uncovered edges.
+
+        This guarantees feasibility, though not minimality.
+        """
+        repaired = set(cover)
+        for u, v in self.edges:
+            if u not in repaired and v not in repaired:
+                # Add endpoint with higher degree to cover more edges
+                if self.graph.degree[u] >= self.graph.degree[v]:
+                    repaired.add(u)
+                else:
+                    repaired.add(v)
+        return repaired
     
     def get_graph_info(self) -> dict:
         """Return graph statistics."""
