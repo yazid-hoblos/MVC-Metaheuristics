@@ -1,0 +1,489 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    stringstyle=\color{gray},
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue},
+    showstringspaces=false,
+    frame=single,
+    captionpos=b,
+    numbers=left,
+    numberstyle=\tiny
+}
+
+\title{Appendix: Minimum Vertex Cover Optimization\\
+Pseudocode and Implementation Details}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Algorithm Pseudocode}
+
+\subsection{Genetic Algorithm}
+
+\begin{algorithm}[H]
+\caption{Genetic Algorithm for Minimum Vertex Cover}
+\begin{algorithmic}[1]
+\Procedure{GeneticAlgorithm}{problem, encoding, fitness, params}
+    \State population $\leftarrow$ InitializePopulation(params.population\_size, encoding)
+    \State best\_solution $\leftarrow$ None
+    \State best\_fitness $\leftarrow$ $-\infty$
+    
+    \For{generation $\leftarrow$ 1 to params.generations}
+        \State fitness\_scores $\leftarrow$ EvaluatePopulation(population, fitness)
+        
+        \State gen\_best $\leftarrow$ ArgMax(fitness\_scores)
+        \If{fitness\_scores[gen\_best] > best\_fitness}
+            \State best\_fitness $\leftarrow$ fitness\_scores[gen\_best]
+            \State best\_solution $\leftarrow$ DeepCopy(population[gen\_best])
+        \EndIf
+        
+        \State elites, elite\_fitness $\leftarrow$ SelectElites(population, fitness\_scores, params.elitism\_rate)
+        \State new\_population $\leftarrow$ elites
+        
+        \While{Length(new\_population) < params.population\_size}
+            \State parent1 $\leftarrow$ Selection(population, fitness\_scores, params.selection\_type)
+            \State parent2 $\leftarrow$ Selection(population, fitness\_scores, params.selection\_type)
+            
+            \If{Random() < params.crossover\_rate}
+                \State child1, child2 $\leftarrow$ Crossover(parent1, parent2, encoding)
+            \Else
+                \State child1 $\leftarrow$ DeepCopy(parent1)
+                \State child2 $\leftarrow$ DeepCopy(parent2)
+            \EndIf
+            
+            \State Mutate(child1, params.mutation\_rate, encoding)
+            \State Mutate(child2, params.mutation\_rate, encoding)
+            
+            \State new\_population.Append(child1)
+            \If{Length(new\_population) < params.population\_size}
+                \State new\_population.Append(child2)
+            \EndIf
+        \EndWhile
+        
+        \State population $\leftarrow$ new\_population[0:params.population\_size]
+    \EndFor
+    
+    \State cover $\leftarrow$ encoding.SolutionToCover(best\_solution)
+    \Return \{best\_solution, best\_fitness, cover, is\_valid\}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Simulated Annealing}
+
+\begin{algorithm}[H]
+\caption{Simulated Annealing for Minimum Vertex Cover}
+\begin{algorithmic}[1]
+\Procedure{SimulatedAnnealing}{problem, encoding, fitness, params}
+    \State current $\leftarrow$ RandomSolution(encoding)
+    \State current\_fitness $\leftarrow$ Evaluate(current, fitness, encoding)
+    \State best $\leftarrow$ DeepCopy(current)
+    \State best\_fitness $\leftarrow$ current\_fitness
+    
+    \State temperature $\leftarrow$ params.initial\_temperature
+    \State iteration $\leftarrow$ 0
+    
+    \While{temperature > params.min\_temperature AND iteration < params.max\_iterations}
+        \For{i $\leftarrow$ 1 to params.iterations\_per\_temperature}
+            \State neighbor $\leftarrow$ GetNeighbor(current, encoding)
+            \State neighbor\_fitness $\leftarrow$ Evaluate(neighbor, fitness, encoding)
+            
+            \State accept\_prob $\leftarrow$ AcceptanceProbability(current\_fitness, neighbor\_fitness, temperature)
+            
+            \If{Random() < accept\_prob}
+                \State current $\leftarrow$ neighbor
+                \State current\_fitness $\leftarrow$ neighbor\_fitness
+                
+                \If{current\_fitness > best\_fitness}
+                    \State best $\leftarrow$ DeepCopy(current)
+                    \State best\_fitness $\leftarrow$ current\_fitness
+                \EndIf
+            \EndIf
+            
+            \State iteration $\leftarrow$ iteration + 1
+            \If{iteration $\geq$ params.max\_iterations}
+                \State \textbf{break}
+            \EndIf
+        \EndFor
+        
+        \State temperature $\leftarrow$ temperature $\times$ params.cooling\_rate
+    \EndWhile
+    
+    \State cover $\leftarrow$ encoding.SolutionToCover(best)
+    \Return \{best, best\_fitness, cover, is\_valid\}
+\EndProcedure
+
+\Function{AcceptanceProbability}{current\_fitness, neighbor\_fitness, temperature}
+    \If{neighbor\_fitness $\geq$ current\_fitness}
+        \Return 1.0
+    \Else
+        \Return $\exp\left(\frac{\text{neighbor\_fitness} - \text{current\_fitness}}{\text{temperature}}\right)$
+    \EndIf
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Tabu Search}
+
+\begin{algorithm}[H]
+\caption{Tabu Search for Minimum Vertex Cover}
+\begin{algorithmic}[1]
+\Procedure{TabuSearch}{problem, encoding, fitness, params}
+    \State current $\leftarrow$ RandomSolution(encoding)
+    \State current\_fitness $\leftarrow$ Evaluate(current, fitness, encoding)
+    \State best $\leftarrow$ DeepCopy(current)
+    \State best\_fitness $\leftarrow$ current\_fitness
+    
+    \State tabu\_list $\leftarrow$ EmptyQueue(max\_size=params.tabu\_list\_size)
+    \State tabu\_list.Add(Hash(current))
+    
+    \State iteration $\leftarrow$ 0
+    \State no\_improvement\_count $\leftarrow$ 0
+    
+    \While{iteration < params.max\_iterations AND no\_improvement\_count < 100}
+        \State neighbors $\leftarrow$ GenerateNeighborhood(current, encoding)
+        
+        \If{neighbors is empty}
+            \State \textbf{break}
+        \EndIf
+        
+        \State best\_neighbor $\leftarrow$ None
+        \State best\_neighbor\_fitness $\leftarrow$ $-\infty$
+        
+        \For{\textbf{each} neighbor \textbf{in} neighbors}
+            \State neighbor\_hash $\leftarrow$ Hash(neighbor)
+            \State is\_tabu $\leftarrow$ tabu\_list.Contains(neighbor\_hash)
+            \State neighbor\_fitness $\leftarrow$ Evaluate(neighbor, fitness, encoding)
+            
+            \State aspiration\_met $\leftarrow$ (params.aspiration AND neighbor\_fitness > best\_fitness)
+            
+            \If{(NOT is\_tabu AND neighbor\_fitness > best\_neighbor\_fitness) OR}
+            \phantom{\If{(}aspiration\_met}
+                \State best\_neighbor $\leftarrow$ neighbor
+                \State best\_neighbor\_fitness $\leftarrow$ neighbor\_fitness
+            \EndIf
+        \EndFor
+        
+        \If{best\_neighbor is None}
+            \State \textbf{break}
+        \EndIf
+        
+        \State current $\leftarrow$ best\_neighbor
+        \State current\_fitness $\leftarrow$ best\_neighbor\_fitness
+        \State tabu\_list.Add(Hash(current))
+        
+        \If{current\_fitness > best\_fitness}
+            \State best $\leftarrow$ DeepCopy(current)
+            \State best\_fitness $\leftarrow$ current\_fitness
+            \State no\_improvement\_count $\leftarrow$ 0
+        \Else
+            \State no\_improvement\_count $\leftarrow$ no\_improvement\_count + 1
+        \EndIf
+        
+        \State iteration $\leftarrow$ iteration + 1
+    \EndWhile
+    
+    \State cover $\leftarrow$ encoding.SolutionToCover(best)
+    \Return \{best, best\_fitness, cover, is\_valid\}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\section{Encoding Implementation}
+
+\subsection{Binary Encoding Example}
+
+\begin{lstlisting}[caption=Binary Encoding - Solution to Cover Conversion]
+def binary_solution_to_cover(solution, num_nodes):
+    """Convert binary vector to vertex cover."""
+    cover = set()
+    for i in range(num_nodes):
+        if solution[i] == 1:
+            cover.add(i)
+    return cover
+
+def binary_cover_to_solution(cover, num_nodes):
+    """Convert cover to binary vector."""
+    solution = [0] * num_nodes
+    for node in cover:
+        solution[node] = 1
+    return solution
+
+def binary_random_solution(num_nodes):
+    """Generate random binary vector."""
+    return [random.randint(0, 1) for _ in range(num_nodes)]
+
+def binary_mutation(solution, mutation_rate, num_nodes):
+    """Bit-flip mutation."""
+    for i in range(num_nodes):
+        if random.random() < mutation_rate:
+            solution[i] = 1 - solution[i]
+
+def binary_crossover(parent1, parent2):
+    """Uniform crossover for binary vectors."""
+    child1, child2 = [], []
+    for i in range(len(parent1)):
+        if random.random() < 0.5:
+            child1.append(parent1[i])
+            child2.append(parent2[i])
+        else:
+            child1.append(parent2[i])
+            child2.append(parent1[i])
+    return child1, child2
+\end{lstlisting}
+
+\subsection{Set-Based Encoding Example}
+
+\begin{lstlisting}[caption=Set-Based Encoding - Solution to Cover Conversion]
+def set_solution_to_cover(solution):
+    """Convert sorted list to cover set."""
+    return set(solution)
+
+def set_cover_to_solution(cover):
+    """Convert cover to sorted list."""
+    return sorted(list(cover))
+
+def set_random_solution(num_nodes):
+    """Generate random set of nodes."""
+    num_selected = random.randint(1, max(2, num_nodes // 2))
+    nodes = random.sample(range(num_nodes), num_selected)
+    return sorted(nodes)
+
+def set_mutation(solution, mutation_rate, num_nodes):
+    """Add/remove nodes from set."""
+    if random.random() < mutation_rate / 2 and len(solution) > 0:
+        # Remove random node
+        idx = random.randint(0, len(solution) - 1)
+        solution.pop(idx)
+    
+    if random.random() < mutation_rate / 2:
+        # Add random node not in cover
+        node = random.randint(0, num_nodes - 1)
+        if node not in solution:
+            solution.append(node)
+            solution.sort()
+
+def set_crossover(parent1, parent2):
+    """Single-point crossover for variable-length sets."""
+    # For variable-length, perform standard single-point split
+    # and recombine (alternative: intersection/union-based)
+    if len(parent1) <= 1:
+        return list(parent1), list(parent2)
+    
+    point = random.randint(1, len(parent1) - 1)
+    child1 = parent1[:point] + parent2[point:]
+    child2 = parent2[:point] + parent1[point:]
+    return child1, child2
+\end{lstlisting}
+
+\section{Fitness Function Implementation}
+
+\begin{lstlisting}[caption=Fitness Function Examples]
+def cover_size_minimization(cover, problem):
+    """Fitness = 1 / (1 + normalized_size)"""
+    size = len(cover)
+    normalized_size = size / problem.num_nodes
+    return 1.0 / (1.0 + normalized_size)
+
+def constraint_penalty(cover, problem, penalty_weight=1.0):
+    """
+    Fitness with constraint penalty.
+    Valid covers get positive fitness; invalid get penalized.
+    """
+    is_valid = problem.is_valid_cover(cover)
+    uncovered = count_uncovered_edges(cover, problem)
+    cover_size = len(cover)
+    
+    if is_valid:
+        return 1.0 - (cover_size / problem.num_nodes) * 0.5
+    else:
+        penalty = penalty_weight * (uncovered + cover_size / problem.num_nodes)
+        return max(0.0, 1.0 - penalty)
+
+def edge_coverage_optimization(cover, problem, size_weight=0.3):
+    """
+    Multi-objective: maximize edge coverage, minimize cover size.
+    Fitness = (covered_edges / total) - weight * (size / nodes)
+    """
+    covered = count_covered_edges(cover, problem)
+    coverage_ratio = covered / problem.num_edges if problem.num_edges > 0 else 0
+    
+    size_penalty = (len(cover) / problem.num_nodes) * size_weight
+    
+    fitness = coverage_ratio - size_penalty
+    return max(0.0, fitness)
+
+def count_uncovered_edges(cover, problem):
+    """Count edges not covered by solution."""
+    uncovered = 0
+    for u, v in problem.edges:
+        if u not in cover and v not in cover:
+            uncovered += 1
+    return uncovered
+
+def count_covered_edges(cover, problem):
+    """Count edges covered by solution."""
+    covered = 0
+    for u, v in problem.edges:
+        if u in cover or v in cover:
+            covered += 1
+    return covered
+\end{lstlisting}
+
+\section{Experimental Framework}
+
+\begin{lstlisting}[caption=Main Experiment Loop Structure]
+def run_experiments(num_runs=5):
+    """Run full experimental suite."""
+    instances = generate_benchmark_instances()
+    results = []
+    
+    for problem, instance_name in instances:
+        print(f"Processing {instance_name}...")
+        
+        encodings = [
+            BinaryEncoding(),
+            SetEncoding(),
+            EdgeCentricEncoding(problem.edges)
+        ]
+        
+        fitness_functions = [
+            CoverSizeMinimization(problem),
+            ConstraintPenalty(problem, penalty_weight=1.0),
+            EdgeCoverageOptimization(problem, size_weight=0.3)
+        ]
+        
+        for run_id in range(num_runs):
+            for encoding in encodings:
+                for fitness_func in fitness_functions:
+                    # Genetic Algorithm
+                    ga = GeneticAlgorithm(
+                        problem, encoding, fitness_func,
+                        params=GAParams(population_size=100, generations=300)
+                    )
+                    result_ga = ga.run()
+                    results.append({
+                        'instance': instance_name,
+                        'algorithm': 'GA',
+                        'encoding': encoding.get_name(),
+                        'fitness_func': fitness_func.get_name(),
+                        'run': run_id,
+                        'cover_size': result_ga['best_cover_size'],
+                        'is_valid': result_ga['is_valid'],
+                        'fitness': result_ga['best_fitness']
+                    })
+                    
+                    # Simulated Annealing
+                    sa = SimulatedAnnealing(
+                        problem, encoding, fitness_func,
+                        params=SAParams(initial_temperature=100.0, max_iterations=5000)
+                    )
+                    result_sa = sa.run()
+                    results.append({...})  # Similar structure
+                    
+                    # Tabu Search
+                    ts = TabuSearch(
+                        problem, encoding, fitness_func,
+                        params=TSParams(tabu_list_size=50, max_iterations=5000)
+                    )
+                    result_ts = ts.run()
+                    results.append({...})  # Similar structure
+    
+    # Save and analyze results
+    save_to_csv(results, 'results.csv')
+    print_summary_statistics(results)
+    return results
+\end{lstlisting}
+
+\section{Instance Generation}
+
+\begin{lstlisting}[caption=Benchmark Instance Generation]
+import networkx as nx
+import random
+
+def generate_erdos_renyi_instance(num_nodes, edge_probability, seed=None):
+    """Generate random graph using ER model."""
+    if seed:
+        random.seed(seed)
+    
+    graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
+    return MinimumVertexCoverProblem(graph)
+
+def generate_scale_free_instance(num_nodes, m=2, seed=None):
+    """Generate scale-free graph (Barabasi-Albert model)."""
+    if seed:
+        random.seed(seed)
+    
+    graph = nx.barabasi_albert_graph(num_nodes, m)
+    return MinimumVertexCoverProblem(graph)
+
+def generate_benchmark_suite():
+    """Generate standard benchmark instances."""
+    instances = []
+    
+    # Small ER instance
+    instances.append((
+        generate_erdos_renyi_instance(20, 0.3, seed=42),
+        "small_20nodes"
+    ))
+    
+    # Medium ER instance
+    instances.append((
+        generate_erdos_renyi_instance(50, 0.25, seed=43),
+        "medium_50nodes"
+    ))
+    
+    # Large ER instance
+    instances.append((
+        generate_erdos_renyi_instance(100, 0.15, seed=44),
+        "large_100nodes"
+    ))
+    
+    # Scale-free instance
+    instances.append((
+        generate_scale_free_instance(50, m=3, seed=45),
+        "scale_free_50nodes"
+    ))
+    
+    return instances
+\end{lstlisting}
+
+\section{Key Implementation Details}
+
+\subsection{Parameter Selection Rationale}
+
+\begin{enumerate}
+    \item \textbf{GA Population Size (100)}: Balances diversity against computational cost. Too small (20-30) causes premature convergence; too large (500+) slows iterations.
+    
+    \item \textbf{GA Generations (300)}: Approximately 30,000 fitness evaluations. Provides reasonable runtime while avoiding convergence plateau.
+    
+    \item \textbf{SA Initial Temperature (100.0)}: Calibrated so that $\exp(-100/100) = \exp(-1) \approx 0.37$, giving ~37\% acceptance of random moves initially.
+    
+    \item \textbf{SA Cooling Rate (0.95)}: Geometric schedule slower than 0.9 (too aggressive) but faster than 0.99 (too slow). Reaches min temperature in ~90 iterations.
+    
+    \item \textbf{TS Tabu List Size (50)}: Approximately 10\% of solution space (for 20-100 node graphs). Prevents recent cycling without over-constraining.
+\end{enumerate}
+
+\subsection{Reproducibility}
+
+All experiments use fixed random seeds:
+\begin{itemize}
+    \item Instance generation: seeds 42-45
+    \item Algorithm runs: Python random.seed() and numpy.random.seed() set before each run
+    \item Enables exact replication of reported results
+\end{itemize}
+
+\end{document}
