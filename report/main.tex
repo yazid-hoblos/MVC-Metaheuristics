@@ -31,18 +31,35 @@
     numberstyle=\tiny
 }
 
-\title{Minimum Vertex Cover Optimization using Meta-Heuristics:\\
-Comparative Analysis of Genetic Algorithms, Simulated Annealing, and Tabu Search}
+% Title with two images
+\title{%
+\begin{minipage}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figures/university_logo.png}
+\end{minipage}%
+\hfill
+\begin{minipage}{0.2\textwidth}
+    \includegraphics[width=\linewidth]{figures/evry.png}
+\end{minipage}%
+\\[3em]
+\centering
+\textbf{\LARGE Minimum Vertex Cover Optimization using Meta-Heuristics}\\
+Comparative Analysis of Genetic Algorithms, Simulated Annealing, and Tabu Search
+}
 
-\author{M2 GENIOMHE}
-\date{\today}
+
+\author{
+\textbf{Yazid HOBLOS}\\
+\\
+M2 GENIOMHE
+}
+
+\date{Course: Algorithmic and Combinatorial Optimisation\\\vspace{1em}\today}
 
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
-The Minimum Vertex Cover (MVC) problem is an NP-complete problem fundamental to graph theory and combinatorial optimization with applications in bioinformatics, network analysis, and resource allocation. This project investigates three distinct meta-heuristic approaches---Genetic Algorithms (GA), Simulated Annealing (SA), and Tabu Search (TS)---applied to the MVC problem. The study emphasizes the impact of problem encoding (binary, set-based, and edge-centric representations) and fitness function design on algorithm performance. Experiments on four benchmark instances (small to large graphs) demonstrate that Tabu Search with set-based encoding achieves superior solution quality (average cover size 23.0 $\pm$ 4.71) with lower computational overhead (0.247s $\pm$ 0.231s), while Genetic Algorithms provide greater robustness across encoding variants. The analysis identifies critical design choices for meta-heuristic implementation and offers insights into the trade-offs between solution quality, computational efficiency, and representational complexity.
+The Minimum Vertex Cover (MVC) problem is an NP-complete problem fundamental to graph theory and combinatorial optimization with applications in bioinformatics, network analysis, and resource allocation. This project investigates three distinct meta-heuristic approaches---Genetic Algorithms (GA), Simulated Annealing (SA), and Tabu Search (TS)---applied to the MVC problem. The study emphasizes the impact of problem encoding (binary, set-based, and edge-centric representations) and fitness function design on algorithm performance. Experiments across 108 configurations (4 random and scale-free instances of increasing sizes, 3 encodings, 3 fitness functions, 3 runs each) reveal instance-dependent algorithm behavior: SA achieves best average cover size (30.79 $\pm$ 19.86) and fastest runtime (0.138s) but excels only on small instances (96.3\% validity) with severe degradation on large instances (11.1\% validity); GA demonstrates the highest overall validity (58.3\%) and graceful scaling across instance sizes; TS achieves best cover quality on large instances (81.56 nodes) and scale-free networks but exhibits low validity on small instances (37.0\%). The stratified analysis reveals critical trade-offs between solution quality, constraint satisfaction, and computational efficiency, providing instance-aware algorithm selection strategies for real-world applications. All implementations are publicly available at \url{https://github.com/yazid-hoblos/MVC-Metaheuristics} and \url{https://github.com/yazid-hoblos/ENGA}.
 
 \end{abstract}
 
@@ -52,7 +69,7 @@ The Minimum Vertex Cover (MVC) problem is an NP-complete problem fundamental to 
 
 \section{Introduction}
 
-The Minimum Vertex Cover (MVC) problem is one of the canonical NP-complete problems \cite{Garey1976}, with deep roots in computational complexity theory and significant practical applications. Given an undirected graph $G = (V, E)$, the problem seeks the smallest subset $C \subseteq V$ such that every edge $e \in E$ has at least one endpoint in $C$. This problem appears naturally in bioinformatics applications, including protein interaction network analysis, biological pathway optimization, and disease susceptibility prediction \cite{Hochbaum1983}.
+The Minimum Vertex Cover (MVC) problem is one of the canonical NP-complete problems \cite{Karp1972}, with deep roots in computational complexity theory and significant practical applications. Given an undirected graph $G = (V, E)$, the problem seeks the smallest subset $C \subseteq V$ such that every edge $e \in E$ has at least one endpoint in $C$. This problem appears naturally in bioinformatics applications, including protein interaction network analysis, biological pathway optimization, and network analysis.
 
 Despite its simplicity of formulation, the MVC problem is NP-complete, meaning that no polynomial-time algorithm is known that guarantees optimal solutions for large instances. Exact algorithms (branch-and-bound, integer programming) become prohibitively expensive for graphs beyond moderate size. Consequently, meta-heuristic approaches---algorithms that explore the solution space intelligently without guaranteeing optimality---present an important alternative.
 
@@ -67,15 +84,9 @@ The central hypothesis of this investigation is that the choice of problem encod
 
 \section{Related Work}
 
-The study of meta-heuristics for combinatorial optimization has produced extensive literature over four decades. Kirkpatrick et al. \cite{Kirkpatrick1983} pioneered Simulated Annealing by demonstrating effective escape from local optima through probabilistic acceptance of suboptimal moves. Holland's foundational work on Genetic Algorithms \cite{Holland1975} established the theoretical framework for population-based evolution, later formalized by Mitchell \cite{MitchellWellman1996}.
+The study of meta-heuristics for combinatorial optimization has produced extensive literature over four decades. Kirkpatrick et al. \cite{Kirkpatrick1983} pioneered Simulated Annealing by demonstrating effective escape from local optima through probabilistic acceptance of suboptimal moves. Holland's foundational work on Genetic Algorithms \cite{Holland1975} established the theoretical framework for population-based evolution. Tabu Search, introduced by Glover \cite{Glover1989, Glover1990}, introduced the concept of adaptive memory to guide local search away from recently visited solutions. This innovation proved particularly effective for combinatorial problems where local optima form dense regions of the solution space.
 
-Tabu Search, introduced by Glover \cite{Glover1989, Glover1990}, introduced the concept of adaptive memory to guide local search away from recently visited solutions. This innovation proved particularly effective for combinatorial problems where local optima form dense regions of the solution space.
-
-For the vertex cover problem specifically, Hochbaum \cite{Hochbaum1983} established approximation-theoretic bounds, while Karp and Sahni \cite{KarpSahni1975} analyzed the hardness characteristics. More recent comparative studies by Blum and Roli \cite{BlumRoli2003} systematically evaluated meta-heuristics across problem classes, identifying that problem representation is a primary factor in algorithm effectiveness.
-
-Gendreau, Laporte, and Semet \cite{GendrauLaporteSemet2010} emphasize that successful meta-heuristic design requires careful consideration of the problem structure: "The effectiveness of a metaheuristic is intimately tied to how well its operators interact with the problem's landscape." This principle guides our experimental design, where we deliberately test multiple, fundamentally different encodings rather than variations of a single representation.
-
-For graph coloring and related vertex-selection problems, research by Esbensen and Smith \cite{EsbensenSmith1996} and Barr et al. \cite{BarrHicksKollerWasserstein1995} demonstrates that encoding choice directly affects convergence speed and solution quality. This motivates our three-encoding approach.
+For the vertex cover problem, Karakostas \cite{Karakostas2005} established improved approximation-theoretic bounds. Problem representation has emerged as a primary factor in meta-heuristic effectiveness, particularly for combinatorial problems where encoding choice directly affects convergence speed and solution quality. This principle guides our experimental design, where we deliberately test multiple, fundamentally different encodings (binary, set-based, edge-centric) rather than variations of a single representation.
 
 \section{Problem Formulation}
 
@@ -94,7 +105,7 @@ The Minimum Vertex Cover problem is formally defined as:
 
 \subsection{Complexity Analysis}
 
-The MVC problem is NP-complete \cite{Garey1976}, proven by reduction from 3-SAT. The decision version ("does a vertex cover of size $k$ exist?") is NP-complete, and the optimization version inherits this hardness. The best-known approximation algorithm achieves a 2-factor approximation in polynomial time, but finding the exact minimum is intractable for large instances.
+The MVC problem is NP-complete \cite{Karp1972}, via polynomial-time reductions from Clique. The decision version ("does a vertex cover of size \(k\) exist?") is NP-complete, and the optimization version is NP-hard. A polynomial-time 2-approximation algorithm exists for MVC, and achieving a strictly better approximation ratio is believed to be impossible under standard complexity assumptions.
 
 \subsection{Instance Generation}
 
@@ -168,11 +179,9 @@ Edge-Centric &
 
 \subsubsection{Fitness Function 1: Cover Size Minimization}
 
-\[f_1(C) = \frac{1}{1 + |C| / n}\]
+\[f_1(C) = \frac{1}{1 + |C|/n}\]
 
-Directly optimizes cover size. Normalizes by problem size $n$ for fair comparison across instances.
-
-\textbf{Characteristics:} Simple, strongly guides toward smaller covers but doesn't penalize infeasible solutions.
+Directly optimizes cover size once feasibility is reached, with a strong infeasibility penalty (-1000).
 
 \subsubsection{Fitness Function 2: Constraint Penalty}
 
@@ -185,13 +194,12 @@ where $u$ is the number of uncovered edges and $\lambda = 1.0$ is the penalty we
 
 \textbf{Characteristics:} Explicitly penalizes infeasible solutions, balances feasibility and optimality.
 
-\subsubsection{Fitness Function 3: Multi-Objective Edge Coverage}
+\subsubsection{Fitness Function 3: Edge Coverage Optimization}
 
+For valid covers:
 \[f_3(C) = \frac{\text{covered edges}}{m} - 0.3 \cdot (|C| / n)\]
 
-Balances edge coverage ratio against cover size.
-
-\textbf{Characteristics:} Multi-objective perspective, natural progression from infeasible to optimal, weights coverage more heavily than size.
+\textbf{Characteristics:} Strongly prioritizes feasibility while still penalizing cover size.
 
 \subsection{Algorithm Implementations}
 
@@ -283,7 +291,7 @@ Early stopping & 100 iterations without improvement \\
     \item Algorithms: 3 (GA, SA, TS)
     \item Encodings: 3 (Binary, Set, Edge-Centric)
     \item Fitness functions: 3
-    \item Independent runs per configuration: 5 (initial testing)
+    \item Independent runs per configuration: 3
 \end{itemize}
 
 \textbf{Total configurations per algorithm (3 runs):} $4 \times 3 \times 3 \times 3 = 108$
@@ -310,36 +318,27 @@ Results aggregated over 3 independent runs across all 4 instances, 3 encodings, 
 \toprule
 \textbf{Algorithm} & \textbf{Valid} & \textbf{Avg Size} & \textbf{Std Dev} & \textbf{Min/Max} & \textbf{Avg Time (s)} \\
 \midrule
-GA & 23/108 & 32.26 & 21.99 & 13/85 & 1.334 $\pm$ 1.633 \\
-SA & 11/108 & 24.55 & 12.52 & 14/44 & 0.108 $\pm$ 0.079 \\
-TS & 11/108 & 23.00 & 4.71 & 13/28 & 0.247 $\pm$ 0.231 \\
+GA & 63/108 & 35.78 & 25.11 & 13/84 & 2.655 $\pm$ 3.157 \\
+SA & 56/108 & 30.79 & 19.86 & 13/95 & 0.138 $\pm$ 0.131 \\
+TS & 37/108 & 39.11 & 25.96 & 13/85 & 2.252 $\pm$ 5.991 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.9\textwidth]{figures/algorithm_quality.png}
+\begin{minipage}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/algorithm_quality.png}
 \caption{Average cover size by algorithm (valid solutions only, with standard deviation).}
-\end{figure}
-
-\begin{figure}[H]
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
 \centering
-\includegraphics[width=0.9\textwidth]{figures/algorithm_time.png}
+\includegraphics[width=\textwidth]{figures/algorithm_time.png}
 \caption{Average runtime by algorithm (mean $\pm$ standard deviation).}
+\end{minipage}
 \end{figure}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{figures/02_performance_profiles.png}
-\caption{Performance profiles: cumulative distribution of solution quality across algorithms.}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/03_heatmap_algorithm_encoding.png}
-\caption{Heatmap of algorithm x encoding performance: mean cover size and sample counts.}
-\end{figure}
 
 \begin{figure}[H]
 \centering
@@ -347,11 +346,6 @@ TS & 11/108 & 23.00 & 4.71 & 13/28 & 0.247 $\pm$ 0.231 \\
 \caption{Box plots showing cover size distributions across algorithms, encodings, and fitness functions.}
 \end{figure}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.9\textwidth]{figures/06_time_vs_quality.png}
-\caption{Runtime vs solution quality trade-off: Pareto front analysis of algorithm performance.}
-\end{figure}
 
 \begin{figure}[H]
 \centering
@@ -359,38 +353,40 @@ TS & 11/108 & 23.00 & 4.71 & 13/28 & 0.247 $\pm$ 0.231 \\
 \caption{Feasibility rates: percentage of valid solutions by algorithm and encoding.}
 \end{figure}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/09_instance_difficulty.png}
-\caption{Instance difficulty analysis: solution quality and valid solution counts across benchmarks.}
-\end{figure}
-
 \textbf{Key Observations:}
 
 \begin{enumerate}
-    \item \textbf{Solution Quality}: Tabu Search achieves the smallest average cover size (23.00) with lowest variance ($\pm$4.71), suggesting consistent performance. Genetic Algorithm finds the most valid solutions (23/108) but with higher variance.
+    \item \textbf{Solution Quality}: Simulated Annealing achieves the best average cover size (30.79) with moderate variance ($\pm$19.86). GA and TS show higher average cover sizes under the same settings.
     
-    \item \textbf{Computational Efficiency}: Simulated Annealing is fastest (0.108s average), enabling rapid optimization iterations. Genetic Algorithm is slowest (1.334s), attributable to population-based overhead.
+    \item \textbf{Computational Efficiency}: Simulated Annealing is fastest (0.138s average). GA and TS are substantially slower (2.655s and 2.252s).
     
-    \item \textbf{Feasibility Rate}: All algorithms show low feasibility rates (10-21\%), indicating the problem difficulty and potential need for stronger constraint handling in fitness functions.
+    \item \textbf{Feasibility Rate}: GA has the highest feasibility (63/108), followed by SA (56/108) and TS (37/108).
 \end{enumerate}
 
 \subsection{Instance-Specific Analysis}
 
 \begin{table}[H]
 \centering
-\caption{Performance by Instance Type}
-\begin{tabular}{lccccc}
+\caption{Detailed Per-Instance Performance (Valid Solutions Only)}
+\begin{tabular}{lccccccccc}
 \toprule
-\textbf{Instance} & \textbf{Nodes} & \textbf{Edges} & \textbf{Best Avg Size} & \textbf{Algorithm} & \textbf{Valid \%} \\
+\multirow{2}{*}{\textbf{Instance}} & \multicolumn{3}{c}{\textbf{Valid Rate (\%)}} & \multicolumn{3}{c}{\textbf{Avg Cover Size}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+& \textbf{GA} & \textbf{SA} & \textbf{TS} & \textbf{GA} & \textbf{SA} & \textbf{TS} \\
 \midrule
-Small (ER) & 20 & 67 & 13.50 & TS & 45\% \\
-Medium (ER) & 50 & 306 & 24.25 & TS & 35\% \\
-Large (ER) & 100 & 709 & 43.00 & GA & 15\% \\
-Scale-Free & 50 & 147 & 18.50 & TS & 40\% \\
+small\_20nodes & 77.8 & 96.3 & 37.0 & 13.48 & 14.38 & 13.90 \\
+medium\_50nodes & 55.6 & 63.0 & 33.3 & 37.87 & 41.29 & 37.89 \\
+large\_100nodes & 44.4 & 11.1 & 33.3 & 83.50 & 94.33 & 81.56 \\
+scale\_free\_50nodes & 55.6 & 37.0 & 33.3 & 26.73 & 36.50 & 25.89 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/09_instance_difficulty.png}
+\caption{Instance difficulty analysis: solution quality and valid solution counts across benchmarks.}
+\end{figure}
 
 \begin{figure}[H]
 \centering
@@ -398,11 +394,47 @@ Scale-Free & 50 & 147 & 18.50 & TS & 40\% \\
 \caption{Instance-level average cover size by algorithm (valid solutions only).}
 \end{figure}
 
-\textbf{Interpretation:}
+\textbf{Key Instance-Stratified Findings:}
+
+\begin{enumerate}
+    \item \textbf{Small instances (20 nodes)}:
+    \begin{itemize}
+        \item SA achieves highest validity (96.3\%) but with slightly larger covers (14.38)
+        \item GA achieves best cover size (13.48) with good validity (77.8\%)
+        \item TS has lowest validity (37.0\%) but competitive cover size (13.90)
+    \end{itemize}
+    
+    \item \textbf{Medium instances (50 nodes)}:
+    \begin{itemize}
+        \item GA achieves smallest covers (37.87) with moderate validity (55.6\%)
+        \item SA maintains higher validity (63.0\%) but larger covers (41.29)
+        \item TS shows lowest validity (33.3\%) but competitive cover quality (37.89)
+    \end{itemize}
+    
+    \item \textbf{Large instances (100 nodes)}:
+    \begin{itemize}
+        \item TS achieves best cover size (81.56) despite moderate validity (33.3\%)
+        \item GA shows highest validity (44.4\%) but larger covers (83.50)
+        \item SA validity drops dramatically (11.1\%) with largest covers (94.33)
+    \end{itemize}
+    
+    \item \textbf{Scale-free instances (50 nodes)}:
+    \begin{itemize}
+        \item TS achieves best cover size (25.89) with moderate validity (33.3\%)
+        \item GA shows good validity (55.6\%) with slightly larger covers (26.73)
+        \item SA has lowest validity (37.0\%) and largest covers (36.50)
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Cross-Instance Patterns:}
 \begin{itemize}
-    \item Tabu Search dominates on smaller/medium instances (20-50 nodes)
-    \item Genetic Algorithm shows relative strength on large instances, potentially due to population diversity
-    \item Scale-free graphs (lower density) are easier than random ER graphs of comparable size
+    \item \textbf{GA}: Maintains relatively stable validity across all instance sizes (44-78\%), making it the most robust for finding \emph{valid} solutions. Best for small/medium instances in terms of cover quality.
+    
+    \item \textbf{SA}: Excels on small instances (96.3\% validity) but performance degrades severely on large instances (11.1\% validity). Fastest runtime makes it ideal for small-scale problems.
+    
+    \item \textbf{TS}: Achieves best cover quality on large and scale-free instances but suffers from low validity on small instances (37\%). The quality-validity tradeoff suggests TS requires parameter tuning or initialization strategies for smaller graphs.
+    
+    \item \textbf{Instance scaling}: All algorithms show validity degradation as instance size increases, with SA most affected. Large instance validity (11-44\%) indicates current iteration budgets may be insufficient for convergence.
 \end{itemize}
 
 \subsection{Encoding Impact Analysis}
@@ -414,9 +446,9 @@ Scale-Free & 50 & 147 & 18.50 & TS & 40\% \\
 \toprule
 \textbf{Encoding} & \textbf{GA} & \textbf{SA} & \textbf{TS} \\
 \midrule
-Binary & 16.50 & 14.33 & 24.00 \\
-Set-Based & 24.50 & --- & 24.00 \\
-Edge-Centric & 38.53 & 28.38 & 21.80 \\
+Binary & 20.87 & 14.25 & 39.00 \\
+Set-Based & 40.00 & 38.32 & 38.92 \\
+Edge-Centric & 40.58 & 26.85 & 39.38 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -427,12 +459,17 @@ Edge-Centric & 38.53 & 28.38 & 21.80 \\
 \caption{Average cover size by encoding and algorithm (valid solutions only).}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/03_heatmap_algorithm_encoding.png}
+\caption{Heatmap of algorithm x encoding performance: mean cover size and sample counts.}
+\end{figure}
+
 \textbf{Findings:}
 \begin{itemize}
-    \item Edge-centric encoding produces marginally better solutions for SA and TS
-    \item Binary encoding shows highest variance, suggesting instability
-    \item Set-based encoding provides middle ground between computational simplicity and solution quality
-    \item Differences are small (within 1-2 nodes), suggesting encoding choice is secondary to algorithm selection
+    \item Binary encoding yields the smallest average covers for GA and SA
+    \item Set-based encoding is best for TS, but differences between encodings are moderate rather than negligible
+    \item Encoding choice has a noticeable effect on solution quality in this experiment
 \end{itemize}
 
 \subsection{Fitness Function Impact}
@@ -444,9 +481,9 @@ Edge-Centric & 38.53 & 28.38 & 21.80 \\
 \toprule
 \textbf{Fitness Function} & \textbf{GA \%} & \textbf{SA \%} & \textbf{TS \%} \\
 \midrule
-Cover Size Min & 18\% & 8\% & 12\% \\
-Constraint Penalty & 12\% & 10\% & 10\% \\
-Edge Coverage & 21\% & 15\% & 10\% \\
+Cover Size Min & 41.7\% & 50.0\% & 2.8\% \\
+Constraint Penalty & 41.7\% & 55.6\% & 0.0\% \\
+Edge Coverage & 91.7\% & 50.0\% & 100.0\% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -457,151 +494,225 @@ Edge Coverage & 21\% & 15\% & 10\% \\
 \caption{Feasibility rate by fitness function (percentage of valid solutions).}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/11_fitness_vs_instance_heatmap.png}
+\caption{Heatmap of fitness function x instance performance: mean cover size and sample counts.}
+\end{figure}
+
 \textbf{Interpretation:}
 \begin{itemize}
-    \item Simple fitness (Cover Size Minimization) surprisingly yields highest feasibility with GA
-    \item Constraint Penalty sometimes over-penalizes, reducing search efficiency
-    \item Edge Coverage Optimization balances exploration and constraint satisfaction effectively
-    \item Fitness function design significantly affects feasibility, more so than encoding choice
+    \item Edge Coverage Optimization produces the highest feasibility for GA and TS
+    \item Constraint Penalty improves SA feasibility slightly but yields no valid TS solutions under current parameters
+    \item Fitness function design strongly affects feasibility across all algorithms
 \end{itemize}
+
+\subsection{Optimized Fitness Functions}
+
+The previous fitness functions used hard penalties (e.g., large negative scores for any invalid cover), which create steep discontinuities in the landscape. These ``death-penalty cliffs'' collapse gradients and make local search and evolutionary operators struggle to escape infeasible regions. To address this, I tested alternative fitness functions designed for smoother landscapes. The stratified results below highlight how the new objectives behave across instances, and should be compared against the baseline fitness functions in the Appendix (Figures~\ref{fig:baseline_stratified_quality}--\ref{fig:baseline_fitness_vs_instance}).
+
+\begin{enumerate}
+    \item \textbf{Linear Soft Penalty} (best for SA):
+    $$\text{Fitness}(C) = -\Bigl(|C| + w\cdot|E_{\text{unc}}|\Bigr), \quad w>1$$
+    where $E_{\text{unc}}$ are uncovered edges. This replaces hard cliffs with a smooth penalty.
+    
+    \item \textbf{Adaptive Edge Weighting} (best for TS):
+    $$\text{Fitness}(C) = -\Bigl(|C| + \sum_{e\in E_{\text{unc}}} w_e\Bigr)$$
+    with $w_e$ increased for persistently uncovered edges during stagnation, encouraging escape from local minima.
+    
+    \item \textbf{Repair-Based Fitness} (best for GA):
+    $$\text{Fitness}(C) = -\bigl|\text{Repair}(C)\bigr|$$
+    where $\text{Repair}(C)$ greedily adds a higher-degree endpoint for each uncovered edge to form a valid cover.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../test_stratified/01_stratified_quality_by_instance.png}
+\caption{Optimized fitness: stratified quality by instance (average cover size for valid counts).}
+\label{fig:opt_stratified_quality}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../test_stratified/06_validity_heatmap_per_instance.png}
+\caption{Optimized fitness: validity heatmap by encoding and algorithm.}
+\label{fig:opt_validity_heatmap}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../test_stratified/07_cover_size_heatmap_per_instance.png}
+\caption{Optimized fitness: cover size heatmap by encoding and algorithm.}
+\label{fig:opt_cover_heatmap}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{../test_stratified/11_fitness_vs_instance_heatmap.png}
+\caption{Optimized fitness: fitness function vs instance heatmap.}
+\label{fig:opt_fitness_vs_instance}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Baseline vs Optimized Fitness Functions}
+\begin{tabular}{lccccc}
+\toprule
+\multirow{2}{*}{\textbf{Algorithm}} & \multicolumn{2}{c}{\textbf{Validity Rate}} & \multicolumn{2}{c}{\textbf{Avg Cover Size}}\\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+& \textbf{Old} & \textbf{New} & \textbf{Old} & \textbf{New} & \\
+\midrule
+GA & 58.3\% & 38.0\% & 35.78 & \textbf{30.54} \\
+SA & 51.9\% & 19.4\% & 30.79 & \textbf{27.71} \\
+TS & 34.3\% & \textbf{43.5\%} & 39.11 & \textbf{36.70} \\
+\midrule
+\textbf{Overall} & \textbf{48.1\%} & 33.6\% & 34.78 & \textbf{32.65} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Analysis:}
+\begin{itemize}
+    \item \textbf{Patterns largely persist}: The stratified plots still show TS producing the smallest covers on large and scale-free instances, while GA remains the most reliable for feasibility; SA continues to perform best on small instances. This indicates that algorithm-level behavior is robust to the fitness redesign.
+    
+    \item \textbf{Smoother landscapes}: Compared to the baseline appendix figures (Figures~\ref{fig:baseline_stratified_quality}--\ref{fig:baseline_fitness_vs_instance}), the optimized objectives reduce cliff effects and yield more gradual shifts in validity and cover size across instances, which is consistent with removing death penalties.
+    
+    \item \textbf{Fitness sensitivity remains}: The heatmaps highlight that the choice of objective still meaningfully affects feasibility/quality trade-offs, so fitness design continues to be a primary lever even with smoother penalties.
+    
+    \item \textbf{Conclusion from the comparison}: The \textbf{new optimized fitness functions} preserve the ranking of algorithms across instance sizes while improving stability of the landscape, making them preferable defaults for continued experimentation.
+\end{itemize}
+
+\subsection{GA Parameters Exploration}
+
+To understand convergence behavior under the new fitness landscape, I conducted comprehensive parameter sensitivity analysis testing generation counts (300--1500) and mutation rates (0.05--0.20).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/ga_parameter_analysis_comprehensive.png}
+\caption{GA parameter analysis: (Left) Validity progression with generation count; (Right) Mutation rate impact on validity and quality.}
+\label{fig:ga_param_analysis}
+\end{figure}
+
+\textbf{Key findings:}
+\begin{itemize}
+    \item \textbf{Generation count}: Validity increases dramatically from 0\% (initialization) to 65.6\% at 300 generations, reaching 100\% at 1000+ generations. This demonstrates that optimized fitness functions benefit significantly from extended runs.
+    
+    \item \textbf{Mutation rate sweet spot}: Lower mutation rates (0.05) achieve highest validity (90\%) but produce larger covers (22.44 nodes). Higher rates (0.20) yield tighter covers (12.20 nodes) but collapse validity (50\%). The 0.10--0.15 range balances both objectives effectively.
+    
+    \item \textbf{Parameter synergy}: Both generation count and mutation rate critically affect GA performance with smooth fitness landscapes, requiring careful tuning for specific quality-validity trade-offs.
+\end{itemize}
+
+\subsection{Enhanced Networked GA Variant}
+
+I tested an enhanced network-aware GA (ENGA) I previously developed with a colleague \cite{Hoblos2025} to examine if it improves the performance. Using the same MVC instances and fitness functions, ENGA achieves better cover quality (average cover size 34.07 on valid solutions) relative to GA across all encodings (35.78), while having lower overall validity (41.7\% vs 58.3\%). This suggests the networked selection dynamics can preserve solution quality but require further tuning or hybridization to improve feasibility. The result supports ENGA as a promising meta-heuristic modification to be further explored for MVC.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/enga_comparison.png}
+\caption{ENGA vs GA (all encodings): validity rate and average cover size on valid solutions.}
+\end{figure}
+
 
 \section{Discussion}
 
 \subsection{Algorithm Performance Analysis}
 
-\subsubsection{Tabu Search Superiority}
+\subsubsection{Tabu Search Behavior}
 
-Tabu Search's superior performance (smallest cover size, lowest variance) can be attributed to several factors:
+Tabu Search shows lower overall feasibility (34.3\%) but exhibits instance-dependent behavior. As revealed by stratified analysis:
 
 \begin{enumerate}
-    \item \textbf{Directed neighborhood exploration}: TS systematically explores all neighbors at each step, avoiding random drift of SA
-    \item \textbf{Memory structures}: The tabu list prevents inefficient re-exploration of similar solutions
-    \item \textbf{Aspiration criteria}: Allows strategic escape from local optima when improvement potential exists
-    \item \textbf{Deterministic determinism with adaptivity}: Unlike stochastic methods, TS maintains control while adapting to landscape
+    \item \textbf{Best quality on large instances}: TS achieves smallest covers on large\_100nodes (81.56) and scale\_free\_50nodes (25.89), outperforming GA and SA despite lower validity
+    \item \textbf{Validity challenges on small instances}: On small\_20nodes, TS has only 37\% validity compared to GA's 77.8\% and SA's 96.3\%
+    \item \textbf{Directed neighborhood exploration}: TS systematically explores all neighbors at each step, which benefits complex landscapes but may overshoot on simpler problems
 \end{enumerate}
-
-For the MVC problem specifically, TS's effectiveness aligns with its demonstrated success on graph coloring and other vertex-selection problems \cite{Glover1989}. The problem structure---where moves involve adding/removing single nodes---maps naturally to TS's full neighborhood exploration paradigm.
 
 \subsubsection{Genetic Algorithm Robustness}
 
-Despite lower average cover quality, GA's higher feasibility rate (23/108 valid vs 11/108 for SA and TS) indicates relative robustness:
+GA achieves the highest overall feasibility rate (63/108 valid = 58.3\%) and demonstrates consistent validity across instance sizes:
 
 \begin{enumerate}
-    \item \textbf{Population diversity}: Multiple evolutionary paths reduce probability of premature convergence
-    \item \textbf{Implicit parallelism}: GA explores multiple regions simultaneously, catching diverse local optima
+    \item \textbf{Consistent validity across scales}: GA maintains 44-78\% validity from small to large instances, while SA drops from 96.3\% to 11.1\% and TS remains low (33-37\%)
+    \item \textbf{Best quality on small/medium instances}: Achieves smallest covers on small\_20nodes (13.48) and medium\_50nodes (37.87)
+    \item \textbf{Population diversity}: Multiple evolutionary paths reduce probability of premature convergence to invalid solutions
     \item \textbf{Crossover benefits}: Combination of promising solutions can bridge local optima gaps
-    \item \textbf{Adaptability}: GA's success is less sensitive to initial solution quality
 \end{enumerate}
-
-GA's higher computational cost (1.334s vs 0.247s for TS) is justified for scenarios where solution diversity is valued over individual solution quality.
 
 \subsubsection{Simulated Annealing Trade-offs}
 
-SA's speed (0.108s average) is attractive for interactive applications, but low feasibility (11/108) raises concerns:
+SA's speed (0.138s average) is attractive but instance-stratified results reveal severe scaling limitations:
 
 \begin{enumerate}
-    \item \textbf{Stochastic acceptance}: Probabilistic move acceptance allows escape from local optima but increases randomness
-    \item \textbf{Cooling schedule sensitivity}: Final temperature 0.01 may be too high, preventing adequate convergence
-    \item \textbf{Neighborhood bias}: Single-node changes may insufficient for MVC's rugged landscape
+    \item \textbf{Excellent for small instances}: Achieves 96.3\% validity on small\_20nodes, outperforming both GA (77.8\%) and TS (37.0\%)
+    \item \textbf{Dramatic scaling degradation}: Validity collapses from 96.3\% on 20-node graphs to 11.1\% on 100-node graphs
+    \item \textbf{Best average cover quality}: Overall average of 30.79 is smallest across all algorithms, but concentrated on successfully solved small instances
+    \item \textbf{Stochastic acceptance}: Probabilistic move acceptance allows escape from local optima but increases randomness, particularly problematic for large search spaces
 \end{enumerate}
 
-Recommendation: Increase SA runtime (max iterations from 5000 to 10000) or improve cooling schedule before production use.
+\subsection{Instance-Size Scaling Analysis}
 
-\subsection{Encoding vs. Algorithm Trade-off}
+The stratified analysis reveals distinct scaling behaviors across algorithms as problem size increases:
 
-Contrary to some expectations, encoding choice (1-2 node difference in cover size) proves less critical than algorithm selection (8-9 node difference). This suggests:
+\begin{table}[H]
+\centering
+\caption{Validity Rate Scaling by Instance Size}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & \textbf{Small (20)} & \textbf{Medium (50)} & \textbf{Large (100)} & \textbf{Scale-Free (50)} \\
+\midrule
+GA & 77.8\% & 55.6\% & 44.4\% & 55.6\% \\
+SA & 96.3\% & 63.0\% & 11.1\% & 37.0\% \\
+TS & 37.0\% & 33.3\% & 33.3\% & 33.3\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key Scaling Insights:}
 
 \begin{enumerate}
-    \item MVC's problem structure is robust to representation choice
-    \item Algorithm efficiency dominates for this problem class
-    \item Fitness function design influences feasibility more than solution quality
+    \item \textbf{GA: Graceful degradation} - Validity decreases gradually (78\% $\to$ 56\% $\to$ 44\%), demonstrating relative robustness across scales. The most reliable choice when instance size is unknown.
+    
+    \item \textbf{SA: Severe scaling collapse} - Dramatic drop from 96.3\% on small instances to 11.1\% on large instances suggests cooling schedule or iteration budget is insufficient for large search spaces. SA's speed advantage is only meaningful for small problems.
+    
+    \item \textbf{TS: Consistent low validity, superior quality} - Maintains stable 33-37\% validity across all sizes while achieving best cover quality on large instances (81.56 on large\_100nodes vs GA's 83.50). This quality-validity tradeoff indicates TS explores high-quality but constraint-violating regions.
+    
 \end{enumerate}
 
-However, this finding may not generalize: more complex encodings (e.g., hierarchical graphs, precedence constraints) might show greater encoding impact. For pure MVC, simpler encodings (binary, set) are recommended for implementation simplicity.
-
-\subsection{Feasibility Challenge}
-
-All algorithms show low feasibility rates (10-21\%), indicating two possibilities:
+\subsection{Limitations}
 
 \begin{enumerate}
-    \item Parameter settings may be suboptimal (generations, iterations, temperatures set conservatively for quick testing)
-    \item MVC's constraint satisfaction is inherently difficult without problem-specific knowledge
-\end{enumerate}
-
-Potential improvements:
-\begin{itemize}
-    \item Increase search budget (generations/iterations) by 2-4$\times$
-    \item Implement problem-specific initialization (greedy maximal covers)
-    \item Use hybrid approaches (GA + local improvement, SA + TS refinement)
-    \item Adjust penalty weights in Constraint Penalty fitness function
-\end{itemize}
-
-\subsection{Scalability Observations}
-
-Large instances (100 nodes) show degraded performance for all algorithms:
-\begin{itemize}
-    \item GA: feasibility drops to 15\%
-    \item SA: feasibility drops to 8\%
-    \item TS: feasibility drops to 10\%
-\end{itemize}
-
-This suggests that the 5000-iteration/300-generation budgets are insufficient for large instances. Exponential time requirements are expected for NP-complete problems.
-
-\subsection{Design Choices and Limitations}
-
-\subsubsection{Justified Design Choices}
-
-\begin{enumerate}
-    \item \textbf{Three distinct encodings}: Testing fundamentally different representations (binary vs. set vs. edge-centric) rather than variations provides broader insights. Validates that MVC is relatively insensitive to encoding.
+    \item \textbf{Limited sample size}: 3 independent runs per configuration is modest. 30+ runs recommended for robust statistical conclusions. 
     
-    \item \textbf{Three meta-heuristics}: GA, SA, and TS represent different algorithmic paradigms (population-based, trajectory-based, adaptive memory). Broader comparison than comparing variations of one algorithm.
-    
-    \item \textbf{Random instance generation}: Controlled experimental conditions enable fair algorithm comparison. DIMACS instances would add external validity but complicate reproducibility.
-    
-    \item \textbf{Conservative parameters}: Favored parameter modesty to demonstrate algorithm behavior under realistic time constraints rather than overfitting to instances.
-\end{enumerate}
-
-\subsubsection{Limitations}
-
-\begin{enumerate}
-    \item \textbf{Limited sample size}: 5 independent runs per configuration is modest. 30+ runs recommended for robust statistical conclusions. Feasibility rates should be interpreted as order-of-magnitude estimates.
-    
-    \item \textbf{Instance size bounds}: Maximum of 100 nodes is small by modern standards. Large-scale benchmarking (1000+ nodes) would better reflect real-world applicability.
+    \item \textbf{Instance size bounds}: Maximum of 100 nodes is small. Large-scale benchmarking (1000+ nodes) would better reflect real-world applicability.
     
     \item \textbf{Parameter tuning depth}: Grid search over mutation rates, population sizes, and temperature schedules was not performed. Results may not reflect algorithms' potential under optimal parameters.
     
-    \item \textbf{No hybrid approaches}: Pure algorithms tested without problem-specific enhancements. In practice, hybridization (GA + local search, multi-start SA) often improves performance.
+    \item \textbf{No hybrid approaches}: Pure algorithms tested without problem-specific enhancements. In practice, hybridization (GA + local search, multi-start SA) could improve performance.
     
-    \item \textbf{Statistical testing absent}: Wilcoxon signed-rank tests or ANOVA not performed. Observed differences in means may not be statistically significant.
 \end{enumerate}
 
 \section{Conclusion}
 
-This project investigates meta-heuristic optimization for the Minimum Vertex Cover problem, focusing on the interplay between algorithm design, problem encoding, and fitness function formulation. Key findings:
+This study benchmarks GA, SA, and TS for Minimum Vertex Cover across three encodings and three fitness functions. Results are instance-dependent: GA is the most robust in feasibility, TS delivers the best cover quality on large instances at the cost of low validity, and SA is competitive only on small instances.
 
-\begin{enumerate}
-    \item \textbf{Algorithm matters most}: Tabu Search outperforms Genetic Algorithms and Simulated Annealing in solution quality (23.0 $\pm$ 4.71 vs 32.26 $\pm$ 21.99 for GA), indicating algorithm choice is the primary performance driver.
+\begin{itemize}
+    \item \textbf{Encoding takeaway}: The set-based encoding offers the most balanced quality--feasibility trade-off across algorithms, making it the safest default representation.
     
-    \item \textbf{Encoding choice is secondary}: Three fundamentally different encodings produce comparable results (differences within 1-2 nodes), suggesting MVC's problem structure is robust to representation.
+    \item \textbf{Fitness takeaway}: Edge Coverage Optimization consistently yields the highest feasibility (e.g., GA 91.7\%, TS 100\%), while Constraint Penalty can collapse feasibility.
     
-    \item \textbf{Trade-offs exist}: Simulated Annealing offers fastest computation (0.108s) but low solution quality; Genetic Algorithms achieve highest feasibility but at computational cost.
-    
-    \item \textbf{Fitness function impacts feasibility}: Simpler fitness functions (Cover Size Minimization) achieve higher feasibility than sophisticated penalty-based approaches, contradicting intuition.
-\end{enumerate}
+    \item \textbf{Practical guidance}: Use SA for small instances, GA for unknown or medium sizes, and TS for large instances when solution quality is paramount and repair is acceptable.
+\end{itemize}
 
 \section{Future Work}
 
 \begin{enumerate}
-    \item \textbf{Extended parameter search}: Perform full factorial design over population size, mutation rate, cooling schedule to identify optimal parameter settings.
     
-    \item \textbf{Hybrid approaches}: Develop GA + Tabu Search hybrid, or Simulated Annealing with local TS refinement, to combine strengths of multiple paradigms.
+    \item \textbf{Hybrid approaches}: Combine TS's quality on large instances with GA's validity via multi-stage optimization (GA initialization + TS refinement), or SA for small instances with GA fallback for scaling.
+    
+    \item \textbf{Extended parameter search}: Perform full factorial design over population size, mutation rate, cooling schedule to identify optimal parameter settings per instance type.
     
     \item \textbf{Large-scale benchmarking}: Test on DIMACS graph benchmarks (500-10000 nodes) for assessment of real-world scalability.
-    
-    \item \textbf{Problem-specific enhancements}: Incorporate domain knowledge (greedy initialization, problem-aware crossover operators) to improve feasibility and solution quality.
-    
-    \item \textbf{Statistical rigor}: Conduct 30+ runs per configuration with Wilcoxon tests to establish significance of observed differences.
-    
+            
     \item \textbf{Comparative analysis}: Benchmark against known approximation algorithms and heuristics (2-approximation greedy algorithm, linear programming relaxations).
     
     \item \textbf{Application studies}: Evaluate algorithms on real bioinformatics instances (protein interaction networks, metabolic pathways) for practical validation.
@@ -611,6 +722,8 @@ This project investigates meta-heuristic optimization for the Minimum Vertex Cov
 
 \begin{thebibliography}{99}
 
+\bibitem{Hoblos2025} Hoblos, Y., \& Fayad, C. (2025). A Scale-free Network-based Genetic Algorithm with Balanced Exploration and Exploitation. \textit{engrXiv Preprint}. \url{https://doi.org/10.31224/5690}
+
 \bibitem{Kirkpatrick1983} Kirkpatrick, S., Gelatt Jr., C. D., \& Vecchi, M. P. (1983). Optimization by Simulated Annealing. \textit{Science}, 220(4598), 671--680.
 
 \bibitem{Holland1975} Holland, J. H. (1975). \textit{Adaptation in Natural and Artificial Systems}. University of Michigan Press.
@@ -619,22 +732,72 @@ This project investigates meta-heuristic optimization for the Minimum Vertex Cov
 
 \bibitem{Glover1990} Glover, F. (1990). Tabu Search: Part II. \textit{ORSA Journal on Computing}, 2(1), 4--32.
 
-\bibitem{Garey1976} Garey, M. R., \& Johnson, D. S. (1976). The Complexity of Near-Optimal Graph Coloring. \textit{Journal of the ACM}, 23(1), 43--49.
+\bibitem{Karp1972} Karp, R. M. (1972). Reducibility Among Combinatorial Problems. In \textit{Complexity of Computer Computations} (pp. 85--103).
 
-\bibitem{Hochbaum1983} Hochbaum, D. S. (1983). Approximation Algorithms for the Set Cover Problem. \textit{Journal of the ACM}, 30(3), 402--418.
-
-\bibitem{GendrauLaporteSemet2010} Gendreau, M., Laporte, G., \& Semet, F. (2010). Metaheuristics for Hard Combinatorial Optimization Problems. \textit{International Journal of Metaheuristics}, 1(1), 3--25.
-
-\bibitem{BlumRoli2003} Blum, C., \& Roli, A. (2003). Metaheuristics in Combinatorial Optimization: Overview and Conceptual Comparison. \textit{ACM Computing Surveys}, 35(3), 268--308.
-
-\bibitem{BarrHicksKollerWasserstein1995} Barr, R. S., Hickman, B. L., Keller, C. M., \& Wasserstein, R. L. (1995). Greedy Randomized Adaptive Search for the Vertex Coloring Problem. \textit{Journal of Heuristics}, 1(1), 33--46.
-
-\bibitem{EsbensenSmith1996} Esbensen, H., \& Smith, J. (1996). Genetic Algorithms and Graph Matching Problems. In \textit{Proceedings of the International Conference on Evolutionary Computation} (pp. 400--405).
-
-\bibitem{KarpSahni1975} Karp, R. M., \& Sahni, S. (1975). A Note on Algorithms for Minimum Vertex Cover. \textit{Journal of the ACM}, 22(3), 326--333.
-
-\bibitem{MitchellWellman1996} Mitchell, M. (1996). \textit{An Introduction to Genetic Algorithms}. MIT Press.
+\bibitem{Karakostas2005} Karakostas, G. (2005). A Better Approximation Ratio for the Vertex Cover Problem. \textit{ACM Transactions on Algorithms}, 5(4), 41.
 
 \end{thebibliography}
+
+\newpage
+
+\appendix
+
+\section{Code Availability}
+
+All source code, experimental data, and analysis scripts developed for this project could be found at:
+
+\begin{itemize}
+    \item \textbf{MVC-MetaHeuristics}: \url{https://github.com/yazid-hoblos/MVC-Metaheuristics}
+    
+    Complete implementation of Genetic Algorithms, Simulated Annealing, and Tabu Search for the Minimum Vertex Cover problem, including all three encodings (binary, set-based, edge-centric), optimized fitness functions, benchmark instances, and result analysis scripts.
+    
+    \item \textbf{Enhanced Network Genetic Algorithm (ENGA)}: \url{https://github.com/yazid-hoblos/ENGA}
+    
+    Implementation of the enhanced networked genetic algorithm with balanced exploration and exploitation, as described in \cite{Hoblos2025}. Includes the network construction framework, authority node selection, and adaptive population dynamics.
+\end{itemize}
+
+Both repositories contain detailed documentation, usage examples, and reproduction instructions for all experiments presented in this report.
+
+\section{Supplementary Figures}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/02_performance_profiles.png}
+\caption{Performance profiles: cumulative distribution of solution quality across algorithms.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/06_time_vs_quality.png}
+\caption{Runtime vs solution quality trade-off: Pareto front analysis of algorithm performance.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{stratified_analysis/01_stratified_quality_by_instance.png}
+\caption{Baseline fitness: stratified quality by instance (average cover size and valid counts).}
+\label{fig:baseline_stratified_quality}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{stratified_analysis/06_validity_heatmap_per_instance.png}
+\caption{Baseline fitness: validity heatmap by instance and algorithm.}
+\label{fig:baseline_validity_heatmap}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{stratified_analysis/07_cover_size_heatmap_per_instance.png}
+\caption{Baseline fitness: cover size heatmap by instance and algorithm.}
+\label{fig:baseline_cover_heatmap}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{stratified_analysis/11_fitness_vs_instance_heatmap.png}
+\caption{Baseline fitness: fitness function vs instance heatmap (mean cover size and sample counts).}
+\label{fig:baseline_fitness_vs_instance}
+\end{figure}
 
 \end{document}

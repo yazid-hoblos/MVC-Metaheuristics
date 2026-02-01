@@ -2,9 +2,11 @@
 \usepackage[latin1]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{geometry}
+\usepackage{hyperref}
 \geometry{margin=1in}
 
 \lstset{
@@ -33,174 +35,171 @@ Pseudocode and Implementation Details}
 
 \subsection{Genetic Algorithm}
 
-\begin{algorithm}[H]
-\caption{Genetic Algorithm for Minimum Vertex Cover}
-\begin{algorithmic}[1]
-\Procedure{GeneticAlgorithm}{problem, encoding, fitness, params}
-    \State population $\leftarrow$ InitializePopulation(params.population\_size, encoding)
-    \State best\_solution $\leftarrow$ None
-    \State best\_fitness $\leftarrow$ $-\infty$
+\textbf{Algorithm 1: Genetic Algorithm for Minimum Vertex Cover}
+
+\begin{verbatim}
+procedure GeneticAlgorithm(problem, encoding, fitness, params)
+  population ← InitializePopulation(params.population_size, encoding)
+  best_solution ← None
+  best_fitness ← -∞
+  
+  for generation = 1 to params.generations do
+    fitness_scores ← EvaluatePopulation(population, fitness)
+    gen_best ← ArgMax(fitness_scores)
     
-    \For{generation $\leftarrow$ 1 to params.generations}
-        \State fitness\_scores $\leftarrow$ EvaluatePopulation(population, fitness)
-        
-        \State gen\_best $\leftarrow$ ArgMax(fitness\_scores)
-        \If{fitness\_scores[gen\_best] > best\_fitness}
-            \State best\_fitness $\leftarrow$ fitness\_scores[gen\_best]
-            \State best\_solution $\leftarrow$ DeepCopy(population[gen\_best])
-        \EndIf
-        
-        \State elites, elite\_fitness $\leftarrow$ SelectElites(population, fitness\_scores, params.elitism\_rate)
-        \State new\_population $\leftarrow$ elites
-        
-        \While{Length(new\_population) < params.population\_size}
-            \State parent1 $\leftarrow$ Selection(population, fitness\_scores, params.selection\_type)
-            \State parent2 $\leftarrow$ Selection(population, fitness\_scores, params.selection\_type)
-            
-            \If{Random() < params.crossover\_rate}
-                \State child1, child2 $\leftarrow$ Crossover(parent1, parent2, encoding)
-            \Else
-                \State child1 $\leftarrow$ DeepCopy(parent1)
-                \State child2 $\leftarrow$ DeepCopy(parent2)
-            \EndIf
-            
-            \State Mutate(child1, params.mutation\_rate, encoding)
-            \State Mutate(child2, params.mutation\_rate, encoding)
-            
-            \State new\_population.Append(child1)
-            \If{Length(new\_population) < params.population\_size}
-                \State new\_population.Append(child2)
-            \EndIf
-        \EndWhile
-        
-        \State population $\leftarrow$ new\_population[0:params.population\_size]
-    \EndFor
+    if fitness_scores[gen_best] > best_fitness then
+      best_fitness ← fitness_scores[gen_best]
+      best_solution ← DeepCopy(population[gen_best])
+    end if
     
-    \State cover $\leftarrow$ encoding.SolutionToCover(best\_solution)
-    \Return \{best\_solution, best\_fitness, cover, is\_valid\}
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
+    elites, elite_fitness ← SelectElites(population, fitness_scores, params.elitism_rate)
+    new_population ← elites
+    
+    while Length(new_population) < params.population_size do
+      parent1 ← Selection(population, fitness_scores, params.selection_type)
+      parent2 ← Selection(population, fitness_scores, params.selection_type)
+      
+      if Random() < params.crossover_rate then
+        child1, child2 ← Crossover(parent1, parent2, encoding)
+      else
+        child1 ← DeepCopy(parent1)
+        child2 ← DeepCopy(parent2)
+      end if
+      
+      Mutate(child1, params.mutation_rate, encoding)
+      Mutate(child2, params.mutation_rate, encoding)
+      
+      new_population.Append(child1)
+      if Length(new_population) < params.population_size then
+        new_population.Append(child2)
+      end if
+    end while
+    
+    population ← new_population[0:params.population_size]
+  end for
+  
+  cover ← encoding.SolutionToCover(best_solution)
+  return {best_solution, best_fitness, cover, is_valid}
+end procedure
+\end{verbatim}
 
 \subsection{Simulated Annealing}
 
-\begin{algorithm}[H]
-\caption{Simulated Annealing for Minimum Vertex Cover}
-\begin{algorithmic}[1]
-\Procedure{SimulatedAnnealing}{problem, encoding, fitness, params}
-    \State current $\leftarrow$ RandomSolution(encoding)
-    \State current\_fitness $\leftarrow$ Evaluate(current, fitness, encoding)
-    \State best $\leftarrow$ DeepCopy(current)
-    \State best\_fitness $\leftarrow$ current\_fitness
-    
-    \State temperature $\leftarrow$ params.initial\_temperature
-    \State iteration $\leftarrow$ 0
-    
-    \While{temperature > params.min\_temperature AND iteration < params.max\_iterations}
-        \For{i $\leftarrow$ 1 to params.iterations\_per\_temperature}
-            \State neighbor $\leftarrow$ GetNeighbor(current, encoding)
-            \State neighbor\_fitness $\leftarrow$ Evaluate(neighbor, fitness, encoding)
-            
-            \State accept\_prob $\leftarrow$ AcceptanceProbability(current\_fitness, neighbor\_fitness, temperature)
-            
-            \If{Random() < accept\_prob}
-                \State current $\leftarrow$ neighbor
-                \State current\_fitness $\leftarrow$ neighbor\_fitness
-                
-                \If{current\_fitness > best\_fitness}
-                    \State best $\leftarrow$ DeepCopy(current)
-                    \State best\_fitness $\leftarrow$ current\_fitness
-                \EndIf
-            \EndIf
-            
-            \State iteration $\leftarrow$ iteration + 1
-            \If{iteration $\geq$ params.max\_iterations}
-                \State \textbf{break}
-            \EndIf
-        \EndFor
-        
-        \State temperature $\leftarrow$ temperature $\times$ params.cooling\_rate
-    \EndWhile
-    
-    \State cover $\leftarrow$ encoding.SolutionToCover(best)
-    \Return \{best, best\_fitness, cover, is\_valid\}
-\EndProcedure
+\textbf{Algorithm 2: Simulated Annealing for Minimum Vertex Cover}
 
-\Function{AcceptanceProbability}{current\_fitness, neighbor\_fitness, temperature}
-    \If{neighbor\_fitness $\geq$ current\_fitness}
-        \Return 1.0
-    \Else
-        \Return $\exp\left(\frac{\text{neighbor\_fitness} - \text{current\_fitness}}{\text{temperature}}\right)$
-    \EndIf
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
+\begin{verbatim}
+procedure SimulatedAnnealing(problem, encoding, fitness, params)
+  current ← RandomSolution(encoding)
+  current_fitness ← Evaluate(current, fitness, encoding)
+  best ← DeepCopy(current)
+  best_fitness ← current_fitness
+  
+  temperature ← params.initial_temperature
+  iteration ← 0
+  
+  while temperature > params.min_temperature AND iteration < params.max_iterations do
+    for i = 1 to params.iterations_per_temperature do
+      neighbor ← GetNeighbor(current, encoding)
+      neighbor_fitness ← Evaluate(neighbor, fitness, encoding)
+      
+      accept_prob ← AcceptanceProbability(current_fitness, neighbor_fitness, temperature)
+      
+      if Random() < accept_prob then
+        current ← neighbor
+        current_fitness ← neighbor_fitness
+        
+        if current_fitness > best_fitness then
+          best ← DeepCopy(current)
+          best_fitness ← current_fitness
+        end if
+      end if
+      
+      iteration ← iteration + 1
+      if iteration >= params.max_iterations then
+        break
+      end if
+    end for
+    
+    temperature ← temperature × params.cooling_rate
+  end while
+  
+  cover ← encoding.SolutionToCover(best)
+  return {best, best_fitness, cover, is_valid}
+end procedure
+
+function AcceptanceProbability(current_fitness, neighbor_fitness, temperature)
+  if neighbor_fitness ≥ current_fitness then
+    return 1.0
+  else
+    return exp((neighbor_fitness - current_fitness) / temperature)
+  end if
+end function
+\end{verbatim}
 
 \subsection{Tabu Search}
 
-\begin{algorithm}[H]
-\caption{Tabu Search for Minimum Vertex Cover}
-\begin{algorithmic}[1]
-\Procedure{TabuSearch}{problem, encoding, fitness, params}
-    \State current $\leftarrow$ RandomSolution(encoding)
-    \State current\_fitness $\leftarrow$ Evaluate(current, fitness, encoding)
-    \State best $\leftarrow$ DeepCopy(current)
-    \State best\_fitness $\leftarrow$ current\_fitness
+\textbf{Algorithm 3: Tabu Search for Minimum Vertex Cover}
+
+\begin{verbatim}
+procedure TabuSearch(problem, encoding, fitness, params)
+  current ← RandomSolution(encoding)
+  current_fitness ← Evaluate(current, fitness, encoding)
+  best ← DeepCopy(current)
+  best_fitness ← current_fitness
+  
+  tabu_list ← EmptyQueue(max_size=params.tabu_list_size)
+  tabu_list.Add(Hash(current))
+  
+  iteration ← 0
+  no_improvement_count ← 0
+  
+  while iteration < params.max_iterations AND no_improvement_count < 100 do
+    neighbors ← GenerateNeighborhood(current, encoding)
     
-    \State tabu\_list $\leftarrow$ EmptyQueue(max\_size=params.tabu\_list\_size)
-    \State tabu\_list.Add(Hash(current))
+    if neighbors is empty then
+      break
+    end if
     
-    \State iteration $\leftarrow$ 0
-    \State no\_improvement\_count $\leftarrow$ 0
+    best_neighbor ← None
+    best_neighbor_fitness ← -∞
     
-    \While{iteration < params.max\_iterations AND no\_improvement\_count < 100}
-        \State neighbors $\leftarrow$ GenerateNeighborhood(current, encoding)
-        
-        \If{neighbors is empty}
-            \State \textbf{break}
-        \EndIf
-        
-        \State best\_neighbor $\leftarrow$ None
-        \State best\_neighbor\_fitness $\leftarrow$ $-\infty$
-        
-        \For{\textbf{each} neighbor \textbf{in} neighbors}
-            \State neighbor\_hash $\leftarrow$ Hash(neighbor)
-            \State is\_tabu $\leftarrow$ tabu\_list.Contains(neighbor\_hash)
-            \State neighbor\_fitness $\leftarrow$ Evaluate(neighbor, fitness, encoding)
-            
-            \State aspiration\_met $\leftarrow$ (params.aspiration AND neighbor\_fitness > best\_fitness)
-            
-            \If{(NOT is\_tabu AND neighbor\_fitness > best\_neighbor\_fitness) OR}
-            \phantom{\If{(}aspiration\_met}
-                \State best\_neighbor $\leftarrow$ neighbor
-                \State best\_neighbor\_fitness $\leftarrow$ neighbor\_fitness
-            \EndIf
-        \EndFor
-        
-        \If{best\_neighbor is None}
-            \State \textbf{break}
-        \EndIf
-        
-        \State current $\leftarrow$ best\_neighbor
-        \State current\_fitness $\leftarrow$ best\_neighbor\_fitness
-        \State tabu\_list.Add(Hash(current))
-        
-        \If{current\_fitness > best\_fitness}
-            \State best $\leftarrow$ DeepCopy(current)
-            \State best\_fitness $\leftarrow$ current\_fitness
-            \State no\_improvement\_count $\leftarrow$ 0
-        \Else
-            \State no\_improvement\_count $\leftarrow$ no\_improvement\_count + 1
-        \EndIf
-        
-        \State iteration $\leftarrow$ iteration + 1
-    \EndWhile
+    for each neighbor in neighbors do
+      neighbor_hash ← Hash(neighbor)
+      is_tabu ← tabu_list.Contains(neighbor_hash)
+      neighbor_fitness ← Evaluate(neighbor, fitness, encoding)
+      
+      aspiration_met ← (params.aspiration AND neighbor_fitness > best_fitness)
+      
+      if (NOT is_tabu AND neighbor_fitness > best_neighbor_fitness) OR
+         aspiration_met then
+        best_neighbor ← neighbor
+        best_neighbor_fitness ← neighbor_fitness
+      end if
+    end for
     
-    \State cover $\leftarrow$ encoding.SolutionToCover(best)
-    \Return \{best, best\_fitness, cover, is\_valid\}
-\EndProcedure
-\end{algorithmic}
-\end{algorithm}
+    if best_neighbor is None then
+      break
+    end if
+    
+    current ← best_neighbor
+    current_fitness ← best_neighbor_fitness
+    tabu_list.Add(Hash(current))
+    
+    if current_fitness > best_fitness then
+      best ← DeepCopy(current)
+      best_fitness ← current_fitness
+      no_improvement_count ← 0
+    else
+      no_improvement_count ← no_improvement_count + 1
+    end if
+    
+    iteration ← iteration + 1
+  end while
+  
+  cover ← encoding.SolutionToCover(best)
+  return {best, best_fitness, cover, is_valid}
+end procedure
+\end{verbatim}
 
 \section{Encoding Implementation}
 
