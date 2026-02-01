@@ -52,24 +52,45 @@ minimum_vertex_cover/
 └── requirements.txt            # Python dependencies
 ```
 
-## Quick Start
+## Reproducibility
 
-### Installation
+Install all dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Run Experiments
+### Reproducing Baseline Results
 ```bash
-# Default: 3 runs per configuration, results saved to results/results.csv
-python run_experiments.py
+# Run baseline experiments (3 algorithms × 3 encodings × 3 fitness × 12 instances × 3 runs)
+python run_experiments.py --output results/baseline_results.csv
+# Expected output: CSV with 324 rows
 
-# Custom output path
-python run_experiments.py --output results/my_experiment.csv
-
-# Quick test to verify setup
-python test_quick.py
+# Could specify one encoding and one fitness function with:
+# python run_experiments.py --encoding BinaryEncoding --fitness EdgeCoverageOptimization
+# Check all options with: python run_experiments.py --help
 ```
+
+### Reproducing GA Parameter Analysis
+```bash
+# Analyze GA sensitivity to generations and mutation rates
+python ga_parameter_analysis.py
+```
+
+### Reproducing Report Figures
+```bash
+# Generate all stratified analysis plots
+python generate_stratified_plots.py
+```
+
+### Datasets
+Benchmark instances are generated programmatically:
+- **Small**: 10-20 nodes, 15-50 edges (Erdős-Rényi, p=0.3)
+- **Medium**: 30-50 nodes, 90-300 edges (Erdős-Rényi, p=0.2)  
+- **Large**: 60-80 nodes, 360-1000 edges (Erdős-Rényi, p=0.15)
+
+### Related Projects
+- **ENGA Framework**: [github.com/yazid-hoblos/ENGA](https://github.com/yazid-hoblos/ENGA) 
+
 
 ## Key Results
 
@@ -117,141 +138,7 @@ python test_quick.py
 *Comprehensive comparison of fitness functions showing both solution quality and validity rates. Optimized functions provide smoother search landscapes.*
 
 
-## Reproducibility
-
-### System Requirements
-- **Python**: 3.8 or higher
-- **OS**: Linux, macOS, or Windows (WSL recommended)
-- **RAM**: 2GB minimum
-- **Storage**: 500MB for results and plots
-
-### Dependencies
-```bash
-numpy>=1.20.0
-networkx>=2.6
-matplotlib>=3.4.0
-seaborn>=0.11.0
-pandas>=1.3.0
-```
-
-Install all dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-### Reproducing Baseline Results
-```bash
-# Run baseline experiments (3 algorithms × 3 encodings × 3 fitness × 12 instances × 3 runs)
-python run_experiments.py --output results/baseline_results.csv
-
-# Expected runtime: ~45 minutes
-# Expected output: CSV with 324 rows
-```
-
-### Reproducing Optimized Fitness Results
-```bash
-# First, ensure optimized fitness module exists
-ls src/mvc_fitness_opt.py
-
-# Run experiments with optimized fitness functions
-# (Modify run_experiments.py to import from mvc_fitness_opt instead of mvc_fitness)
-python run_experiments_opt.py --output results/optimized_results.csv
-
-# Expected runtime: ~45 minutes
-# Expected output: CSV with 324 rows
-```
-
-### Reproducing GA Parameter Analysis
-```bash
-# Analyze GA sensitivity to generations and mutation rates
-python ga_parameter_analysis.py
-
-# Expected runtime: ~30 minutes
-# Expected output: Results in ga_analysis_results_opt/
-# - validity_progression.png: Validity vs generations (0% → 100%)
-# - mutation_rate_impact.png: Mutation rate sensitivity analysis
-```
-
-### Reproducing Report Figures
-```bash
-# Generate all stratified analysis plots
-python generate_stratified_plots.py
-
-# Expected output: Plots in test_stratified/ including:
-# - plot_1.png: Feasibility by fitness function
-# - plot_6.png: Quality by instance size
-# - plot_7.png: Runtime by algorithm
-# - plot_11.png: Convergence by instance difficulty
-
-# Generate comprehensive 2-panel GA analysis
-cd report
-python plot_ga_analysis.py
-
-# Expected output: ga_analysis_combined.png (2 panels showing validity progression)
-```
-
-### Verification
-After running experiments, verify results:
-```bash
-# Check CSV structure
-head -n 5 results/results.csv
-
-# Expected columns: algorithm,encoding,fitness,instance,run,best_cover_size,
-#                   is_valid,best_fitness,total_time,evaluations
-
-# Verify instance generation is deterministic
-python -c "
-import sys; sys.path.insert(0, 'src')
-from problem import InstanceGenerator
-instances = InstanceGenerator.generate_benchmark_instances()
-print(f'Generated {len(instances)} instances')
-print(f'First instance: {instances[0][1]} with {instances[0][0].n_nodes} nodes')
-"
-# Expected: 12 instances, deterministic output
-```
-
-### Random Seed Control
-The codebase uses fixed random seeds for reproducibility:
-- **Instance generation**: `seed=42` in `InstanceGenerator`
-- **Algorithm runs**: `seed=42 + run_id` per experiment
-- **To change seeds**: Modify `experiments.py` line 15
-
-### Common Issues
-
-**Issue**: Import error for `mvc_fitness_opt`
-**Solution**: Ensure `src/mvc_fitness_opt.py` exists. If not, use baseline fitness from `mvc_fitness.py`.
-
-**Issue**: Memory error during large experiments
-**Solution**: Reduce `num_runs` in `run_experiments.py` from 3 to 1.
-
-**Issue**: Plots look different from report
-**Solution**: Ensure matplotlib version ≥3.4.0 and seaborn ≥0.11.0 for consistent styling.
-
-### Dataset Access
-Benchmark instances are generated programmatically with deterministic seeds:
-- **Small**: 10-20 nodes, 15-50 edges (Erdős-Rényi, p=0.3)
-- **Medium**: 30-50 nodes, 90-300 edges (Erdős-Rényi, p=0.2)  
-- **Large**: 60-80 nodes, 360-1000 edges (Erdős-Rényi, p=0.15)
-
-Export instances to disk:
-```bash
-python export_instances.py
-# Output: instances/ directory with edge lists and metadata JSON
-```
-
-### Related Projects
-- **MVC-Metaheuristics**: [github.com/yazid-hoblos/MVC-Metaheuristics](https://github.com/yazid-hoblos/MVC-Metaheuristics) - This repository
-- **ENGA Framework**: [github.com/yazid-hoblos/ENGA](https://github.com/yazid-hoblos/ENGA) - Evolving Network Generation with Augmentation
-
-### Support
-- **Issues**: [MVC-Metaheuristics Issues](https://github.com/yazid-hoblos/MVC-Metaheuristics/issues)
-- **Detailed Methodology**: See `report/main.tex` for technical report
-
-
-
 ## References
-
-Complete bibliography available in [report/main.tex](report/main.tex). Key references:
 
 - **Karp (1972)**: Reducibility among combinatorial problems - NP-completeness of Vertex Cover
 - **Kirkpatrick et al. (1983)**: Optimization by simulated annealing - SA algorithm foundation
@@ -259,13 +146,5 @@ Complete bibliography available in [report/main.tex](report/main.tex). Key refer
 - **Glover (1989, 1990)**: Tabu search fundamentals and applications
 - **Karakostas (2005)**: Better approximation algorithm for vertex cover  
 - **Hoblos (2025)**: Evolving Network Generation with Augmentation (ENGA) preprint
-
-## License
-
-This project is part of academic research. For reuse, please cite the associated technical report.
-
 ---
 
-**Author**: Yazid Hoblos  
-**Institution**: M2 Research Project  
-**Year**: 2025
