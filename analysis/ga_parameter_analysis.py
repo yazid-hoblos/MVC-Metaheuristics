@@ -24,13 +24,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from problem import MinimumVertexCoverProblem
 from ga import GeneticAlgorithm, GAParams
-from mvc_fitness import FitnessFunctionFactory
+from mvc_fitness_opt import (
+    LinearSoftPenalty,
+    AdaptiveEdgeWeighting,
+    RepairBasedFitness
+)
 from mvc_encodings import BinaryEncoding
 import networkx as nx
 
 
 # Output directory for results
-OUTPUT_DIR = Path(__file__).parent / "ga_analysis_results"
+OUTPUT_DIR = Path(__file__).parent / "ga_analysis_results_opt"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
@@ -59,9 +63,9 @@ class GAParameterAnalyzer:
         print(f"{'='*80}")
         
         fitness_functions = {
-            'CoverSizeMin': FitnessFunctionFactory.create_cover_size_minimization(problem),
-            'ConstraintPenalty': FitnessFunctionFactory.create_constraint_penalty(problem),
-            'EdgeCoverage': FitnessFunctionFactory.create_edge_coverage_optimization(problem),
+            'LinearSoftPenalty': LinearSoftPenalty(problem),
+            'AdaptiveEdgeWeighting': AdaptiveEdgeWeighting(problem),
+            'RepairBasedFitness': RepairBasedFitness(problem),
         }
         
         # Standard GA parameters
@@ -119,7 +123,7 @@ class GAParameterAnalyzer:
         print(f"Testing Population Size Variations on {problem.num_nodes} nodes")
         print(f"{'='*80}")
         
-        fitness_func = FitnessFunctionFactory.create_cover_size_minimization(problem)
+        fitness_func = LinearSoftPenalty(problem)
         pop_sizes = [50, 100, 200, 300]
         
         print(f"\n{'Pop Size':<15} {'Valid %':<12} {'Avg Size':<12} {'Time (s)':<12}")
@@ -152,7 +156,7 @@ class GAParameterAnalyzer:
                 
                 self.results.append({
                     'instance': instance_name,
-                    'fitness_func': 'CoverSizeMin',
+                    'fitness_func': 'LinearSoftPenalty',
                     'run': run,
                     'valid': problem.is_valid_cover(cover),
                     'cover_size': len(cover) if cover else 0,
@@ -174,8 +178,8 @@ class GAParameterAnalyzer:
         print(f"Testing Generation Count Variations on {problem.num_nodes} nodes")
         print(f"{'='*80}")
         
-        fitness_func = FitnessFunctionFactory.create_cover_size_minimization(problem)
-        generations_list = [100, 200, 300, 500]
+        fitness_func = LinearSoftPenalty(problem)
+        generations_list = [300, 500, 750, 1000, 1500]
         
         print(f"\n{'Generations':<15} {'Valid %':<12} {'Avg Size':<12} {'Time (s)':<12}")
         print("-" * 80)
@@ -207,7 +211,7 @@ class GAParameterAnalyzer:
                 
                 self.results.append({
                     'instance': instance_name,
-                    'fitness_func': 'CoverSizeMin',
+                    'fitness_func': 'LinearSoftPenalty',
                     'run': run,
                     'valid': problem.is_valid_cover(cover),
                     'cover_size': len(cover) if cover else 0,
@@ -229,7 +233,7 @@ class GAParameterAnalyzer:
         print(f"Testing Mutation Rate Variations on {problem.num_nodes} nodes")
         print(f"{'='*80}")
         
-        fitness_func = FitnessFunctionFactory.create_cover_size_minimization(problem)
+        fitness_func = LinearSoftPenalty(problem)
         mut_rates = [0.05, 0.1, 0.15, 0.2]
         
         print(f"\n{'Mutation Rate':<15} {'Valid %':<12} {'Avg Size':<12} {'Time (s)':<12}")
@@ -262,7 +266,7 @@ class GAParameterAnalyzer:
                 
                 self.results.append({
                     'instance': instance_name,
-                    'fitness_func': 'CoverSizeMin',
+                    'fitness_func': 'LinearSoftPenalty',
                     'run': run,
                     'valid': problem.is_valid_cover(cover),
                     'cover_size': len(cover) if cover else 0,
