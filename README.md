@@ -1,8 +1,9 @@
 # Minimum Vertex Cover Optimization using Meta-Heuristics
 
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
 [![MVC-Metaheuristics](https://img.shields.io/badge/GitHub-MVC--Metaheuristics-blue)](https://github.com/yazid-hoblos/MVC-Metaheuristics)
 [![ENGA Framework](https://img.shields.io/badge/GitHub-ENGA-green)](https://github.com/yazid-hoblos/ENGA)
-[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
+[![ENGRXiv Preprint](https://img.shields.io/badge/Preprint-ENGRXiv-orange?logo=Open%20Access&logoColor=white)](https://engrxiv.org/preprint/view/5690)
 
 ## Overview
 
