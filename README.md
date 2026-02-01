@@ -1,273 +1,271 @@
 # Minimum Vertex Cover Optimization using Meta-Heuristics
 
-## Project Overview
+[![MVC-Metaheuristics](https://img.shields.io/badge/GitHub-MVC--Metaheuristics-blue)](https://github.com/yazid-hoblos/MVC-Metaheuristics)
+[![ENGA Framework](https://img.shields.io/badge/GitHub-ENGA-green)](https://github.com/yazid-hoblos/ENGA)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
 
-This project implements and compares three meta-heuristic optimization algorithms for the Minimum Vertex Cover (MVC) problem:
-- **Genetic Algorithm (GA)**
-- **Simulated Annealing (SA)**
-- **Tabu Search (TS)**
+## Overview
 
-The study investigates three fundamentally distinct problem encodings and three different fitness functions to assess their impact on algorithm performance.
+This project implements and compares three meta-heuristic algorithms for solving the **Minimum Vertex Cover (MVC)** problem:
+- **Genetic Algorithm (GA)** - Population-based evolutionary optimization
+- **Simulated Annealing (SA)** - Probabilistic trajectory-based search  
+- **Tabu Search (TS)** - Adaptive memory-based local search
 
-## Problem Description
+The study evaluates **3 problem encodings** (binary vector, set-based, edge-centric) and **3 fitness function classes** (original hard-penalty and optimized smooth-landscape functions) across 12 benchmark graph instances.
 
-**Minimum Vertex Cover**: Given an undirected graph G = (V, E), find the smallest subset C ⊆ V such that every edge (u,v) ∈ E has at least one endpoint in C.
+**Key Finding**: Set-based encoding with edge coverage fitness achieves the best balance of solution quality and feasibility. Optimized fitness functions (smooth penalties, adaptive weighting, repair-based) significantly improve search landscape navigability.
 
-This is an NP-complete problem with applications in:
-- Bioinformatics: protein interaction networks, pathway analysis
-- Network design: communication networks, sensor placement
-- Resource allocation: minimum set cover variants
+### Genetic Algorithm in Action
 
-## Project Structure
+<p align="center">
+  <img src="report/figures/ga_animation_small.gif" alt="GA Solution Evolution" width="600"/>
+</p>
+
+*Genetic Algorithm evolution on a small MVC instance showing convergence from random initialization to optimal vertex cover (red nodes). The animation demonstrates population-based search dynamics and fitness improvement over generations.*
+
+## Problem Definition
+
+**Minimum Vertex Cover**: Given graph $G = (V, E)$, find the smallest subset $C \subseteq V$ such that every edge $(u,v) \in E$ has at least one endpoint in $C$.
+
+- **Complexity**: NP-complete
+- **Applications**: Network design, bioinformatics, resource allocation
+
+## Repository Structure
 
 ```
 minimum_vertex_cover/
-├── src/                          # Core implementation
-│   ├── problem.py                # Problem definition and instance generation
-│   ├── mvc_encodings.py          # Three distinct problem encodings
-│   ├── mvc_fitness.py            # Three fitness functions
-│   ├── ga.py                     # Genetic Algorithm implementation
-│   ├── sa.py                     # Simulated Annealing implementation
-│   ├── ts.py                     # Tabu Search implementation
-│   └── experiments.py            # Comprehensive experiment runner
+├── src/
+│   ├── problem.py              # MVC problem definition and instance generator
+│   ├── mvc_encodings.py        # Three problem encodings (binary, set, edge)
+│   ├── mvc_fitness.py          # Original fitness functions (hard penalties)
+│   ├── mvc_fitness_opt.py      # Optimized fitness functions (smooth landscape)
+│   ├── ga.py                   # Genetic Algorithm
+│   ├── sa.py                   # Simulated Annealing
+│   ├── ts.py                   # Tabu Search
+│   └── experiments.py          # Experiment orchestration
 ├── report/
-│   ├── main.tex                  # Main LaTeX report (5+ pages)
-│   └── appendix.tex              # Pseudocode and implementation details
-├── results/                      # Experiment results and CSV output
-├── instances/                    # Generated benchmark instances
-├── run_experiments.py            # Quick experiment runner
-├── test_quick.py                 # Quick verification test
-├── requirements.txt              # Python dependencies
-└── README.md                     # This file
+│   ├── main.tex                # Technical report (LaTeX)
+│   └── appendix.tex            # Algorithm pseudocode
+├── results/                    # Experimental results (CSV files)
+├── instances/                  # Benchmark graph instances
+├── run_experiments.py          # Main experiment runner
+└── requirements.txt            # Python dependencies
 ```
 
-## Problem Encodings
+## Quick Start
 
-### 1. Binary Vector Encoding
-- **Representation**: [b₀, b₁, ..., b_n-1] where bᵢ ∈ {0,1}
-- **Advantages**: Standard GA operators, intuitive interpretation
-- **Disadvantages**: May encode infeasible solutions, requires repair/penalty
-
-### 2. Set-Based Encoding
-- **Representation**: [n₁, n₂, ..., n_k] list of selected nodes
-- **Advantages**: Compact for sparse covers, natural set semantics
-- **Disadvantages**: Variable length, requires specialized crossover
-
-### 3. Edge-Centric Encoding
-- **Representation**: [e₀, e₁, ..., e_m-1] marking which edges participate
-- **Advantages**: Directly addresses edge constraints
-- **Disadvantages**: Requires graph structure for decoding, less intuitive
-
-## Fitness Functions
-
-### 1. Cover Size Minimization
-```
-f(C) = 1 / (1 + |C|/n)
-```
-Simple direct optimization of cover size.
-
-### 2. Constraint Penalty
-```
-f(C) = { 1.0 - 0.5·(|C|/n)           if C is valid
-       { max(0, 1 - λ(u + |C|/n))    otherwise
-```
-Penalizes infeasible solutions; balances feasibility with optimality.
-
-### 3. Edge Coverage Optimization
-```
-f(C) = covered_edges/total_edges - 0.3·(|C|/n)
-```
-Multi-objective: maximize edge coverage, minimize cover size.
-
-## Installation
-
-### Requirements
-- Python 3.8+
-- NumPy >= 1.20.0
-- NetworkX >= 2.6
-- Matplotlib >= 3.4.0 (for plotting)
-
-### Setup
+### Installation
 ```bash
-cd minimum_vertex_cover
 pip install -r requirements.txt
 ```
 
-## Usage
-
-### Quick Test
-Verify all components work correctly:
+### Run Experiments
 ```bash
+# Default: 3 runs per configuration, results saved to results/results.csv
+python run_experiments.py
+
+# Custom output path
+python run_experiments.py --output results/my_experiment.csv
+
+# Quick test to verify setup
 python test_quick.py
 ```
 
-Expected output: Tests GA, SA, TS on a small instance with quick parameter settings.
+## Key Results
 
-### Run Experiments
-```bash
-# Run with 3 independent runs per configuration (quick testing)
-python run_experiments.py
+**Baseline Experiments** (324 runs total: 3 algorithms × 3 encodings × 3 fitness × 12 instances × 3 runs):
 
-# Run with more iterations for thorough testing
-python -c "
-import sys
-sys.path.insert(0, 'src')
-from run_experiments import FastExperimentRunner
-runner = FastExperimentRunner()
-runner.run_experiments(num_runs=10)
-runner.save_results()
-runner.print_summary()
-"
-```
+| Algorithm | Valid Solutions | Avg Cover Size | Runtime |
+|-----------|-----------------|----------------|---------|
+| **GA**    | 48.1%           | 34.78 ± 24.78  | 2.66s   |
+| **SA**    | 55.6%           | 35.58 ± 25.70  | 0.14s   |
+| **TS**    | 34.3%           | 34.14 ± 24.13  | 2.25s   |
 
-Results are saved to `results/` directory as CSV files.
+**Optimized Fitness Functions** (same experimental design with smooth-landscape functions):
 
-### Export Instances (Optional)
-```bash
-python export_instances.py
-```
-
-Exports benchmark graphs to `instances/` as edge lists and metadata JSON files.
-
-### Generate Plots
-```bash
-python generate_plots.py
-```
-
-Generates basic figures in `report/figures/` for inclusion in the report.
-
-### Generate Advanced Plots (Comprehensive Analysis)
-```bash
-python generate_advanced_plots.py
-```
-
-Generates 8 advanced publication-quality plots:
-- Performance profiles (cumulative distribution)
-- Algorithm × Encoding heatmap
-- Convergence curves by instance
-- Box plot distributions
-- Runtime vs quality trade-off
-- Fitness function impact heatmap
-- Feasibility comparison
-- Instance difficulty analysis
-
-### Generate GA Solution Animation
-```bash
-python animate_ga_solution.py
-```
-
-Generates an animation (MP4 or GIF) showing:
-- GA solution evolution on graph visualization
-- Nodes highlighted in cover (red) vs not in cover (teal)
-- Convergence curve in parallel
-- Perfect for presentations and understanding algorithm dynamics
-
-### Custom Experiments
-```python
-import sys
-sys.path.insert(0, 'src')
-
-from problem import InstanceGenerator
-from mvc_encodings import BinaryEncoding
-from mvc_fitness import CoverSizeMinimization
-from ga import GeneticAlgorithm, GAParams
-
-# Load instance
-problem, name = InstanceGenerator.generate_benchmark_instances()[0]
-
-# Setup algorithm
-encoding = BinaryEncoding()
-fitness = CoverSizeMinimization(problem)
-params = GAParams(population_size=100, generations=300)
-
-# Run optimization
-ga = GeneticAlgorithm(problem, encoding, fitness, params)
-result = ga.run()
-
-print(f"Best cover size: {result['best_cover_size']}")
-print(f"Is valid: {result['is_valid']}")
-print(f"Fitness: {result['best_fitness']:.6f}")
-```
-
-## Experimental Results Summary
-
-**Performance Comparison (over 108 tests per algorithm, 5 runs each)**:
-
-| Algorithm | Valid Solutions | Avg Cover Size | Std Dev | Min/Max | Avg Time |
-|-----------|-----------------|----------------|---------|---------|----------|
-| GA        | 23/108 (21%)    | 32.26 ± 21.99  | -       | 13/85   | 1.334s   |
-| SA        | 11/108 (10%)    | 24.55 ± 12.52  | -       | 14/44   | 0.108s   |
-| TS        | 11/108 (10%)    | 23.00 ± 4.71   | -       | 13/28   | 0.247s   |
+| Algorithm | Valid Solutions | Avg Cover Size | Runtime |
+|-----------|-----------------|----------------|---------|
+| **GA**    | 33.6%           | 32.65 ± 23.07  | 2.60s   |
+| **SA**    | 37.0%           | 32.65 ± 23.14  | 0.14s   |
+| **TS**    | 43.5%           | 32.28 ± 22.64  | 2.18s   |
 
 **Key Findings**:
-1. **Tabu Search** achieves best solution quality (smallest cover, lowest variance)
-2. **Genetic Algorithm** finds most valid solutions but with higher variance
-3. **Simulated Annealing** is fastest but has low feasibility
-4. **Encoding choice** is secondary to algorithm selection (differences ≤ 2 nodes)
-5. **Fitness function** significantly affects feasibility rates
+- **Set encoding + edge fitness**: Best overall performance across algorithms
+- **Optimized fitness functions**: Eliminate death-penalty cliffs, improve TS validity by 9.2%
+- **SA**: Fastest algorithm (100ms), excellent quality when feasible
+- **TS**: Benefits most from smooth fitness landscapes
+- **Instance size**: TS outperforms on large graphs (>50 nodes)
 
-## Algorithm Parameters
+### Visual Results
 
-### Genetic Algorithm
-- Population size: 100
-- Generations: 300
-- Mutation rate: 0.1
-- Crossover rate: 0.8
-- Selection: Tournament (size 3)
-- Elitism: Top 5%
+<p align="center">
+  <img src="report/stratified_analysis/01_stratified_quality_by_instance.png" alt="Stratified Quality by Instance" width="700"/>
+</p>
 
-### Simulated Annealing
-- Initial temperature: 100.0
-- Cooling rate: 0.95
-- Iterations per temperature: 50
-- Minimum temperature: 0.01
-- Max iterations: 5000
+*Solution quality stratified by instance size (small, medium, large). Clear progression showing algorithm behavior across different graph scales.*
 
-### Tabu Search
-- Tabu list size: 50
-- Max iterations: 5000
-- Aspiration criteria: Enabled
-- Early stopping: 100 iterations without improvement
+<p align="center">
+  <img src="report/stratified_analysis/07_cover_size_heatmap_per_instance.png" alt="Cover Size Heatmap" width="700"/>
+</p>
 
-## Implementation Notes
+*Heatmap of average cover sizes across algorithm-encoding-fitness combinations for each instance. Darker colors indicate smaller (better) vertex covers.*
 
-### Design Choices
+<p align="center">
+  <img src="report/stratified_analysis/09_fitness_function_comparison.png" alt="Fitness Function Comparison" width="700"/>
+</p>
 
-1. **Three distinct encodings** rather than encoding variants
-   - Tests fundamental representation differences
-   - Validates MVC's robustness to encoding choice
-   - Provides broader algorithmic insights
+*Comprehensive comparison of fitness functions showing both solution quality and validity rates. Optimized functions provide smoother search landscapes.*
 
-2. **Three meta-heuristics** representing different paradigms
-   - GA: Population-based evolution
-   - SA: Trajectory-based probabilistic acceptance
-   - TS: Adaptive memory with full neighborhood search
 
-3. **Random instance generation** for controlled experiments
-   - Enables fair algorithm comparison
-   - Better reproducibility than DIMACS benchmarks
-   - Controlled instance scaling
+## Reproducibility
 
-4. **Conservative parameters** for realistic time constraints
-   - Focus on algorithm behavior under practical limits
-   - Avoids parameter overfitting to instances
+### System Requirements
+- **Python**: 3.8 or higher
+- **OS**: Linux, macOS, or Windows (WSL recommended)
+- **RAM**: 2GB minimum
+- **Storage**: 500MB for results and plots
 
-### Limitations & Future Work
+### Dependencies
+```bash
+numpy>=1.20.0
+networkx>=2.6
+matplotlib>=3.4.0
+seaborn>=0.11.0
+pandas>=1.3.0
+```
 
-1. **Parameter tuning**: Full grid search over population size, mutation rate, temperature schedules
-2. **Large-scale instances**: Test on 500-10,000 node graphs
-3. **Hybrid approaches**: GA + local search, SA + TS refinement
-4. **Statistical testing**: Wilcoxon signed-rank tests, ANOVA
-5. **Domain knowledge**: Problem-specific enhancements, greedy initialization
-6. **DIMACS benchmarks**: Compare against known solutions and approximation algorithms
+Install all dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Reproducing Baseline Results
+```bash
+# Run baseline experiments (3 algorithms × 3 encodings × 3 fitness × 12 instances × 3 runs)
+python run_experiments.py --output results/baseline_results.csv
+
+# Expected runtime: ~45 minutes
+# Expected output: CSV with 324 rows
+```
+
+### Reproducing Optimized Fitness Results
+```bash
+# First, ensure optimized fitness module exists
+ls src/mvc_fitness_opt.py
+
+# Run experiments with optimized fitness functions
+# (Modify run_experiments.py to import from mvc_fitness_opt instead of mvc_fitness)
+python run_experiments_opt.py --output results/optimized_results.csv
+
+# Expected runtime: ~45 minutes
+# Expected output: CSV with 324 rows
+```
+
+### Reproducing GA Parameter Analysis
+```bash
+# Analyze GA sensitivity to generations and mutation rates
+python ga_parameter_analysis.py
+
+# Expected runtime: ~30 minutes
+# Expected output: Results in ga_analysis_results_opt/
+# - validity_progression.png: Validity vs generations (0% → 100%)
+# - mutation_rate_impact.png: Mutation rate sensitivity analysis
+```
+
+### Reproducing Report Figures
+```bash
+# Generate all stratified analysis plots
+python generate_stratified_plots.py
+
+# Expected output: Plots in test_stratified/ including:
+# - plot_1.png: Feasibility by fitness function
+# - plot_6.png: Quality by instance size
+# - plot_7.png: Runtime by algorithm
+# - plot_11.png: Convergence by instance difficulty
+
+# Generate comprehensive 2-panel GA analysis
+cd report
+python plot_ga_analysis.py
+
+# Expected output: ga_analysis_combined.png (2 panels showing validity progression)
+```
+
+### Verification
+After running experiments, verify results:
+```bash
+# Check CSV structure
+head -n 5 results/results.csv
+
+# Expected columns: algorithm,encoding,fitness,instance,run,best_cover_size,
+#                   is_valid,best_fitness,total_time,evaluations
+
+# Verify instance generation is deterministic
+python -c "
+import sys; sys.path.insert(0, 'src')
+from problem import InstanceGenerator
+instances = InstanceGenerator.generate_benchmark_instances()
+print(f'Generated {len(instances)} instances')
+print(f'First instance: {instances[0][1]} with {instances[0][0].n_nodes} nodes')
+"
+# Expected: 12 instances, deterministic output
+```
+
+### Random Seed Control
+The codebase uses fixed random seeds for reproducibility:
+- **Instance generation**: `seed=42` in `InstanceGenerator`
+- **Algorithm runs**: `seed=42 + run_id` per experiment
+- **To change seeds**: Modify `experiments.py` line 15
+
+### Common Issues
+
+**Issue**: Import error for `mvc_fitness_opt`
+**Solution**: Ensure `src/mvc_fitness_opt.py` exists. If not, use baseline fitness from `mvc_fitness.py`.
+
+**Issue**: Memory error during large experiments
+**Solution**: Reduce `num_runs` in `run_experiments.py` from 3 to 1.
+
+**Issue**: Plots look different from report
+**Solution**: Ensure matplotlib version ≥3.4.0 and seaborn ≥0.11.0 for consistent styling.
+
+### Dataset Access
+Benchmark instances are generated programmatically with deterministic seeds:
+- **Small**: 10-20 nodes, 15-50 edges (Erdős-Rényi, p=0.3)
+- **Medium**: 30-50 nodes, 90-300 edges (Erdős-Rényi, p=0.2)  
+- **Large**: 60-80 nodes, 360-1000 edges (Erdős-Rényi, p=0.15)
+
+Export instances to disk:
+```bash
+python export_instances.py
+# Output: instances/ directory with edge lists and metadata JSON
+```
+
+### Related Projects
+- **MVC-Metaheuristics**: [github.com/yazid-hoblos/MVC-Metaheuristics](https://github.com/yazid-hoblos/MVC-Metaheuristics) - This repository
+- **ENGA Framework**: [github.com/yazid-hoblos/ENGA](https://github.com/yazid-hoblos/ENGA) - Evolving Network Generation with Augmentation
+
+### Support
+- **Issues**: [MVC-Metaheuristics Issues](https://github.com/yazid-hoblos/MVC-Metaheuristics/issues)
+- **Detailed Methodology**: See `report/main.tex` for technical report
+
+
 
 ## References
 
-1. Kirkpatrick et al. (1983) - Simulated Annealing
-2. Holland (1975) - Genetic Algorithms
-3. Glover (1989, 1990) - Tabu Search
-4. Garey & Johnson (1976) - NP-completeness of VC
-5. Hochbaum (1983) - Approximation algorithms for Set Cover
-6. Blum & Roli (2003) - Metaheuristics overview
-7. Gendreau et al. (2010) - Metaheuristics for hard combinatorial problems
-8. Additional citations in report
+Complete bibliography available in [report/main.tex](report/main.tex). Key references:
+
+- **Karp (1972)**: Reducibility among combinatorial problems - NP-completeness of Vertex Cover
+- **Kirkpatrick et al. (1983)**: Optimization by simulated annealing - SA algorithm foundation
+- **Holland (1975)**: Adaptation in natural and artificial systems - GA theoretical basis  
+- **Glover (1989, 1990)**: Tabu search fundamentals and applications
+- **Karakostas (2005)**: Better approximation algorithm for vertex cover  
+- **Hoblos (2025)**: Evolving Network Generation with Augmentation (ENGA) preprint
+
+## License
+
+This project is part of academic research. For reuse, please cite the associated technical report.
+
+---
+
+**Author**: Yazid Hoblos  
+**Institution**: M2 Research Project  
+**Year**: 2025
